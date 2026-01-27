@@ -1,8 +1,11 @@
 from pathlib import Path
 from string import punctuation
 from aiogram import Bot, types, Router
+from aiogram.filters import Command
 from datetime import datetime, timedelta
+
 from filters.chat_types import ChatTypeFilter
+from aiogram.filters.command import CommandObject
 
 
 user_group_router = Router()
@@ -15,6 +18,18 @@ with open(BAD_WORDS_FILE, encoding="utf-8") as f:
     BAD_WORDS = {line.strip().lower() for line in f if line.strip()}
 
 users = {}
+
+
+permissions = types.ChatPermissions(
+    can_send_messages=False,
+    can_send_media_messages=False,
+    can_send_polls=False,
+    can_send_other_messages=False,
+    can_add_web_page_previews=False,
+    can_change_info=False,
+    can_invite_users=False,
+    can_pin_messages=False,
+)
 
 
 def normalize(text: str) -> str:
@@ -34,6 +49,27 @@ def contains_bad_word(text: str) -> bool:
 
     return False
 
+@user_group_router.message(Command("mute"))
+async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
+    if command.args is None:
+        await message.reply("Error: pass the arguments")
+        return
+    try:
+        user_id = message.reply_to_message.from_user.id
+        time = command.args.split(" ", maxsplit=1)
+        await bot.restrict_chat_member(
+            chat_id=message.chat.id,
+            user_id=user_id,
+            permissions=permissions,
+            until_date=datetime.now() + timedelta(int(time[0])),
+        )
+        await message.reply(
+            f"{message.from_user.first_name}, User has been muted for {int(time[0])} minutes"
+        )
+    except:
+        await message.reply("Error: Invalid command format, Example:\n"
+                            "/mute <time>"
+                            )
 
 @user_group_router.edited_message
 @user_group_router.message()
@@ -65,17 +101,6 @@ async def cleaner(message: types.Message, bot: Bot):
         return
 
     users[user_id] = 0
-
-    permissions = types.ChatPermissions(
-        can_send_messages=False,
-        can_send_media_messages=False,
-        can_send_polls=False,
-        can_send_other_messages=False,
-        can_add_web_page_previews=False,
-        can_change_info=False,
-        can_invite_users=False,
-        can_pin_messages=False,
-    )
 
     await bot.restrict_chat_member(
         chat_id=message.chat.id,

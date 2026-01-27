@@ -4,7 +4,7 @@ import os
 from aiogram import Bot, Dispatcher, types
 
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv('.env.prod') # delete '.prod' if you want use bot token
 
 from handlers.user_group import user_group_router
 from handlers.user_private import user_private_router
