@@ -5,10 +5,8 @@ from datetime import datetime, timedelta
 from filters.chat_types import ChatTypeFilter
 
 
-
-
 user_group_router = Router()
-user_group_router.message.filter(ChatTypeFilter(['group', 'supergroup']))
+user_group_router.message.filter(ChatTypeFilter(["group", "supergroup"]))
 
 
 BAD_WORDS_FILE = Path(__file__).parent / "banwords.txt"
@@ -18,8 +16,10 @@ with open(BAD_WORDS_FILE, encoding="utf-8") as f:
 
 users = {}
 
+
 def normalize(text: str) -> str:
     return text.translate(str.maketrans("", "", punctuation)).lower()
+
 
 def contains_bad_word(text: str) -> bool:
     normalized = normalize(text)
@@ -33,6 +33,7 @@ def contains_bad_word(text: str) -> bool:
             return True
 
     return False
+
 
 @user_group_router.edited_message
 @user_group_router.message()
@@ -51,13 +52,14 @@ async def cleaner(message: types.Message, bot: Bot):
 
     member = await bot.get_chat_member(message.chat.id, user_id)
     if member.status in ("creator", "administrator"):
-        await message.answer("⚠️ <b>Admin Notice:</b> Please maintain professional language.", parse_mode="HTML")
+        await message.answer(
+            "⚠️ <b>Admin Notice:</b> Please maintain professional language."
+        )
         return
 
     if warnings < 3:
         await message.answer(
             f"⚠️ <b>Warning {warnings}/3:</b> {first_name}, prohibited language is not allowed.",
-            parse_mode="HTML"
         )
         await message.delete()
         return
@@ -84,7 +86,6 @@ async def cleaner(message: types.Message, bot: Bot):
 
     await message.answer(
         text=f"🚫 <b>User Restricted:</b> {first_name} reached <b>3/3</b> warnings.\n<i>1-hour restriction applied.</i>",
-        parse_mode="HTML"
     )
     await message.delete()
 
@@ -101,5 +102,4 @@ async def on_bot_added_to_group(event: types.ChatMemberUpdated):
             "1. Open Group Settings > <b>Administrators</b>\n"
             "2. Add me as an admin\n"
             "3. Enable <b>Delete Messages</b> and <b>Ban Users</b> permissions",
-            parse_mode="HTML"
         )
