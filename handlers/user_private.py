@@ -17,10 +17,13 @@ async def start_cmd(message: types.Message):
     )
     kb = [
         [
-            types.KeyboardButton(text="About bot...")
+            types.KeyboardButton(text="Information about bot...")
         ],
         [
             types.KeyboardButton(text="How use the bot?")
+        ],
+        [
+            types.KeyboardButton(text="View all commands")
         ],
     ]
 
@@ -30,8 +33,9 @@ async def start_cmd(message: types.Message):
         input_field_placeholder='Select an option'
     )
     await message.answer(text, reply_markup=keyboard)
+@user_private_router.message(Command("about"))
 
-@user_private_router.message(F.text.lower() == 'about bot...')
+@user_private_router.message(F.text.lower() == 'information about bot...')
 async def about_cmd(message: types.Message):
     text = (
         "<b>🛡️ Professional Moderation Service</b>\n\n"
@@ -47,6 +51,7 @@ async def about_cmd(message: types.Message):
     await message.reply(text)
 
 @user_private_router.message(F.text.lower() == 'how use the bot?')
+@user_private_router.message(Command("how_use_bot"))
 async def how_to_use_cmd(message: types.Message):
     text = (
         "<b>⚙️ Configuration Instructions</b>\n\n"
@@ -57,5 +62,18 @@ async def how_to_use_cmd(message: types.Message):
         "3. <b>Supergroup Activation</b>: Confirm your chat is a Supergroup to allow "
         "me to restrict members.\n\n"
         "Once these steps are complete, I will immediately begin my watch. 🛡️"
+    )
+    await message.reply(text)
+
+@user_private_router.message(F.text.lower() == 'view all commands')
+@user_private_router.message(Command("help"))
+async def commands_cmd(message: types.Message):
+    text = (
+        "<b>📜 Available Commands</b>\n\n"
+        "<b>Group Administration:</b>\n"
+        "• /mute <code>[duration]</code> - Restrict a user. Use as a <b>reply</b> to their message.\n"
+        "  <i>Examples: /mute 10m, /mute 1h, /mute 1d, /mute 1w, /mute permanent</i>\n"
+        "• /unmute - Restore user's permissions. Use as a <b>reply</b> to their message.\n\n"
+        "<b>Usage Note:</b> Admin commands require the bot to have 'Ban Users' privileges."
     )
     await message.reply(text)

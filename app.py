@@ -9,7 +9,7 @@ load_dotenv(".env.prod")  # delete '.prod' if you want use bot token
 
 from handlers.user_group import user_group_router
 from handlers.user_private import user_private_router
-from bot_cmd_list import user_private_commands, user_group_commands
+from bot_cmd_list import user_private_commands, admin_group_commands
 
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -33,6 +33,9 @@ async def main():
     await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_my_commands(
         commands=user_private_commands, scope=types.BotCommandScopeAllPrivateChats()
+    )
+    await bot.set_my_commands(
+        commands=admin_group_commands, scope=types.BotCommandScopeAllChatAdministrators()
     )
     
     await dp.start_polling(bot, allowed_updates=ALLOWED_UPDATES)
