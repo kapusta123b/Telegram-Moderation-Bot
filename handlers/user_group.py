@@ -20,7 +20,7 @@ with open(BAD_WORDS_FILE, encoding="utf-8") as f:
 users = {}
 
 
-permissions = types.ChatPermissions(
+permissions_mute = types.ChatPermissions(
     can_send_messages=False,
     can_send_media_messages=False,
     can_send_polls=False,
@@ -28,6 +28,18 @@ permissions = types.ChatPermissions(
     can_add_web_page_previews=False,
     can_change_info=False,
     can_invite_users=False,
+    can_pin_messages=False,
+)
+
+
+permissions_unmute = types.ChatPermissions(
+    can_send_messages=True,
+    can_send_media_messages=True,
+    can_send_polls=True,
+    can_send_other_messages=True,
+    can_add_web_page_previews=True,
+    can_change_info=False,
+    can_invite_users=True,
     can_pin_messages=False,
 )
 
@@ -46,30 +58,100 @@ def contains_bad_word(text: str) -> bool:
     for bad_word in BAD_WORDS:
         if bad_word in normalized:
             return True
-
     return False
+
+
+def parse_time(time_str: str) -> datetime | str | None:
+    if time_str == "permanent":
+        return "permanent"
+    
+    unit = time_str[-1]
+    units = {"m": "minutes", "h": "hours", "d": "days", 'w': "weeks"}
+    
+    if unit not in units:
+        return None
+        
+    try:
+        value = int(time_str[:-1])
+        return datetime.now() + timedelta(**{units[unit]: value})
+    
+    except ValueError:
+        return None
+
 
 @user_group_router.message(Command("mute"))
 async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
-    if command.args is None:
-        await message.reply("Error: pass the arguments")
+    member = await bot.get_chat_member(message.chat.id, message.from_user.id)
+    if member.status not in ("creator", "administrator"):
         return
+
+    if not command.args:
+        await message.reply(
+            "❌ <b>Error:</b> Provide duration (e.g., <code>10m</code>, <code>1h</code>, <code>permanent</code>)."
+        )
+        return
+
+    if not message.reply_to_message:
+        await message.reply("❌ <b>Error:</b> Reply to a user's message.")
+        return
+
+    user_id = message.reply_to_message.from_user.id
+    
+    target_member = await bot.get_chat_member(message.chat.id, user_id)
+    if target_member.status in ("creator", "administrator"):
+        await message.reply("❌ <b>Error:</b> Cannot mute an administrator.")
+        return
+
+    time_arg = command.args.split()[0].lower()
+    until_date = parse_time(time_arg)
+
+    if until_date is None:
+        await message.reply("⚠️ <b>Invalid Format:</b> Use 10m, 1h, 1d or permanent.")
+        return
+
+    try:
+        restrict_kwargs = {
+            "chat_id": message.chat.id,
+            "user_id": user_id,
+            "permissions": permissions_mute,
+        }
+        if until_date != "permanent":
+            restrict_kwargs["until_date"] = until_date
+
+        await bot.restrict_chat_member(**restrict_kwargs)
+
+        duration_text = "permanently" if until_date == "permanent" else f"until {until_date.strftime('%Y-%m-%d %H:%M')}"
+        await message.reply(
+            f"🚫 <b>Action:</b> User <b>{message.reply_to_message.from_user.first_name}</b> muted <b>{duration_text}</b>."
+        )
+    except Exception:
+        await message.reply("🚨 <b>System Error:</b> Failed to restrict user.")
+
+
+@user_group_router.message(Command("unmute"))
+async def unmute_cmd(message: types.Message, bot: Bot):
+    member = await bot.get_chat_member(message.chat.id, message.from_user.id)
+    if member.status not in ("creator", "administrator"):
+        return
+
+    if not message.reply_to_message:
+        await message.reply("❌ <b>Error:</b> Reply to the user you wish to unmute.")
+        return
+
     try:
         user_id = message.reply_to_message.from_user.id
-        time = command.args.split(" ", maxsplit=1)
         await bot.restrict_chat_member(
             chat_id=message.chat.id,
             user_id=user_id,
-            permissions=permissions,
-            until_date=datetime.now() + timedelta(int(time[0])),
+            permissions=permissions_unmute,
         )
         await message.reply(
-            f"{message.from_user.first_name}, User has been muted for {int(time[0])} minutes"
+            f"✅ <b>Restored:</b> User <b>{message.reply_to_message.from_user.first_name}</b> unmuted."
         )
-    except:
-        await message.reply("Error: Invalid command format, Example:\n"
-                            "/mute <time>"
-                            )
+    except Exception as e:
+        print(f"Error in unmute: {e}")
+        await message.reply("🚨 <b>System Error:</b> Failed to lift restriction.")
+
 
 @user_group_router.edited_message
 @user_group_router.message()
@@ -95,7 +177,7 @@ async def cleaner(message: types.Message, bot: Bot):
 
     if warnings < 3:
         await message.answer(
-            f"⚠️ <b>Warning {warnings}/3:</b> {first_name}, prohibited language is not allowed.",
+            f"⚠️ <b>Warning {warnings}/3:</b> <b>{first_name}</b>, please refrain from using prohibited language in this chat.",
         )
         await message.delete()
         return
@@ -105,19 +187,19 @@ async def cleaner(message: types.Message, bot: Bot):
     await bot.restrict_chat_member(
         chat_id=message.chat.id,
         user_id=user_id,
-        permissions=permissions,
+        permissions=permissions_mute,
         until_date=datetime.now() + timedelta(minutes=60),
     )
 
     await message.answer(
-        text=f"🚫 <b>User Restricted:</b> {first_name} reached <b>3/3</b> warnings.\n<i>1-hour restriction applied.</i>",
+        text=f"🚫 <b>Access Restricted:</b> User <b>{first_name}</b> has reached the limit of <b>3/3 warnings</b>.\n<i>A 1-hour restriction has been applied.</i>",
     )
     await message.delete()
 
 
 @user_group_router.my_chat_member()
 async def on_bot_added_to_group(event: types.ChatMemberUpdated):
-    if event.new_chat_member.status in ("member", "administrator"):
+    if event.new_chat_member.status in ("member"):
         await event.answer(
             "🛡 <b>Profanity Filter Bot</b>\n\n"
             "I will automatically monitor this chat for prohibited language. "
