@@ -1,11 +1,15 @@
 from pathlib import Path
+
 from string import punctuation
+
 from aiogram import Bot, types, Router
 from aiogram.filters import Command
-from datetime import datetime, timedelta
-
-from filters.chat_types import ChatTypeFilter
 from aiogram.filters.command import CommandObject
+
+from filters.group_filters import IsAdmin, CanBeRestricted
+from filters.chat_filters import ChatTypeFilter
+
+from datetime import datetime, timedelta
 
 
 user_group_router = Router()
@@ -64,44 +68,30 @@ def contains_bad_word(text: str) -> bool:
 def parse_time(time_str: str) -> datetime | str | None:
     if time_str == "permanent":
         return "permanent"
-    
+
     unit = time_str[-1]
-    units = {"m": "minutes", "h": "hours", "d": "days", 'w': "weeks"}
-    
+    units = {"m": "minutes", "h": "hours", "d": "days", "w": "weeks"}
+
     if unit not in units:
         return None
-        
+
     try:
         value = int(time_str[:-1])
         return datetime.now() + timedelta(**{units[unit]: value})
-    
+
     except ValueError:
         return None
 
 
-@user_group_router.message(Command("mute"))
+@user_group_router.message(Command("mute"), IsAdmin(), CanBeRestricted())
 async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
-    member = await bot.get_chat_member(message.chat.id, message.from_user.id)
-    if member.status not in ("creator", "administrator"):
-        return
-
     if not command.args:
         await message.reply(
             "❌ <b>Error:</b> Provide duration (e.g., <code>10m</code>, <code>1h</code>, <code>permanent</code>)."
         )
         return
 
-    if not message.reply_to_message:
-        await message.reply("❌ <b>Error:</b> Reply to a user's message.")
-        return
-
     user_id = message.reply_to_message.from_user.id
-    
-    target_member = await bot.get_chat_member(message.chat.id, user_id)
-    if target_member.status in ("creator", "administrator"):
-        await message.reply("❌ <b>Error:</b> Cannot mute an administrator.")
-        return
-
     time_arg = command.args.split()[0].lower()
     until_date = parse_time(time_arg)
 
@@ -120,7 +110,11 @@ async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
 
         await bot.restrict_chat_member(**restrict_kwargs)
 
-        duration_text = "permanently" if until_date == "permanent" else f"until {until_date.strftime('%Y-%m-%d %H:%M')}"
+        duration_text = (
+            "permanently"
+            if until_date == "permanent"
+            else f"until {until_date.strftime('%Y-%m-%d %H:%M')}"
+        )
         await message.reply(
             f"🚫 <b>Action:</b> User <b>{message.reply_to_message.from_user.first_name}</b> muted <b>{duration_text}</b>."
         )
@@ -128,16 +122,8 @@ async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
         await message.reply("🚨 <b>System Error:</b> Failed to restrict user.")
 
 
-@user_group_router.message(Command("unmute"))
+@user_group_router.message(Command("unmute"), IsAdmin(), CanBeRestricted())
 async def unmute_cmd(message: types.Message, bot: Bot):
-    member = await bot.get_chat_member(message.chat.id, message.from_user.id)
-    if member.status not in ("creator", "administrator"):
-        return
-
-    if not message.reply_to_message:
-        await message.reply("❌ <b>Error:</b> Reply to the user you wish to unmute.")
-        return
-
     try:
         user_id = message.reply_to_message.from_user.id
         await bot.restrict_chat_member(
@@ -148,9 +134,82 @@ async def unmute_cmd(message: types.Message, bot: Bot):
         await message.reply(
             f"✅ <b>Restored:</b> User <b>{message.reply_to_message.from_user.first_name}</b> unmuted."
         )
+
     except Exception as e:
         print(f"Error in unmute: {e}")
         await message.reply("🚨 <b>System Error:</b> Failed to lift restriction.")
+
+
+@user_group_router.message(Command("ban"), IsAdmin(), CanBeRestricted())
+async def ban_cmd(message: types.Message, command: CommandObject, bot: Bot):
+    if not message.reply_to_message and not command.args:
+        await message.reply("❌ <b>Error:</b> Provide duration or reply to a message.")
+        return
+
+    user_id = (
+        message.reply_to_message.from_user.id if message.reply_to_message else None
+    )
+    time_and_id_arg = command.args.split()[0].lower() if command.args else "permanent"
+
+    if not user_id and time_and_id_arg.isdigit():
+        user_id = int(time_and_id_arg)
+        time_and_id_arg = (
+            "permanent"
+            if len(command.args.split()) < 2
+            else command.args.split()[1].lower()
+        )
+
+    until_date = parse_time(time_and_id_arg)
+
+    try:
+        await bot.ban_chat_member(
+            chat_id=message.chat.id, user_id=user_id, until_date=until_date
+        )
+
+        duration_text = (
+            "permanently"
+            if until_date in ("permanent", None)
+            else f"until {until_date.strftime('%Y-%m-%d %H:%M')}"
+        )
+        name = (
+            message.reply_to_message.from_user.first_name
+            if message.reply_to_message
+            else f"ID: {user_id}"
+        )
+        await message.reply(
+            f"🚫 <b>Action:</b> User <b>{name}</b> banned <b>{duration_text}</b>."
+        )
+    except Exception:
+        await message.reply("🚨 <b>System Error:</b> Failed to ban user.")
+
+
+@user_group_router.message(Command("unban"), IsAdmin(), CanBeRestricted())
+async def unban_cmd(message: types.Message, command: CommandObject, bot: Bot):
+    if not command.args and not message.reply_to_message:
+        await message.reply("❌ <b>Error:</b> Provide User ID or reply to a message.")
+        return
+
+    try:
+        if message.reply_to_message:
+            user_id = message.reply_to_message.from_user.id
+        else:
+            user_id = int(command.args.split()[0])
+
+        await bot.unban_chat_member(
+            chat_id=message.chat.id, user_id=user_id, only_if_banned=True
+        )
+
+        name = (
+            message.reply_to_message.from_user.first_name
+            if message.reply_to_message
+            else f"ID: {user_id}"
+        )
+        await message.reply(f"✅ <b>Restored:</b> User <b>{name}</b> unbanned.")
+
+    except ValueError:
+        await message.reply("⚠️ <b>Invalid Format:</b> Use numeric User ID.")
+    except Exception:
+        await message.reply("🚨 <b>System Error:</b> Failed to unban user.")
 
 
 @user_group_router.edited_message

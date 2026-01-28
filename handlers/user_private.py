@@ -1,6 +1,6 @@
 from aiogram import types, Router, F
 from aiogram.filters import CommandStart, Command
-from filters.chat_types import ChatTypeFilter
+from filters.chat_filters import ChatTypeFilter
 
 user_private_router = Router()
 user_private_router.message.filter(ChatTypeFilter(["private"]))
@@ -33,9 +33,9 @@ async def start_cmd(message: types.Message):
         input_field_placeholder='Select an option'
     )
     await message.answer(text, reply_markup=keyboard)
-@user_private_router.message(Command("about"))
 
 @user_private_router.message(F.text.lower() == 'information about bot...')
+@user_private_router.message(Command("about"))
 async def about_cmd(message: types.Message):
     text = (
         "<b>🛡️ Professional Moderation Service</b>\n\n"
@@ -44,7 +44,8 @@ async def about_cmd(message: types.Message):
         "<b>Core Capabilities:</b>\n"
         "• <i>Real-time Scanning</i> of all messages and edits.\n"
         "• <i>Automated Warning System</i> to educate users before taking action.\n"
-        "• <i>Temporary Restrictions</i> (1 hour) for repeat violators to maintain order.\n\n"
+        "• <i>Temporary Restrictions</i> (1 hour) for repeat violators.\n"
+        "• <i>Manual Moderation</i> tools for administrators to ban or mute users.\n\n"
         "I respect your administrators and ensure they retain full control while I handle "
         "the routine moderation tasks."
     )
@@ -61,7 +62,7 @@ async def how_to_use_cmd(message: types.Message):
         "<i>Ban Users</i> permissions are enabled.\n"
         "3. <b>Supergroup Activation</b>: Confirm your chat is a Supergroup to allow "
         "me to restrict members.\n\n"
-        "Once these steps are complete, I will immediately begin my watch. 🛡️"
+        "Once configured, you can use commands by <b>replying</b> to messages or by providing a <b>User ID</b>."
     )
     await message.reply(text)
 
@@ -71,9 +72,12 @@ async def commands_cmd(message: types.Message):
     text = (
         "<b>📜 Available Commands</b>\n\n"
         "<b>Group Administration:</b>\n"
-        "• /mute <code>[duration]</code> - Restrict a user. Use as a <b>reply</b> to their message.\n"
-        "  <i>Examples: /mute 10m, /mute 1h, /mute 1d, /mute 1w, /mute permanent</i>\n"
-        "• /unmute - Restore user's permissions. Use as a <b>reply</b> to their message.\n\n"
+        "• /mute <code>[time]</code> - Mute user (reply required).\n"
+        "• /unmute - Unmute user (reply required).\n"
+        "• /ban <code>[time/ID]</code> - Ban user (reply or ID required).\n"
+        "• /unban <code>[ID]</code> - Unban user (reply or ID required).\n\n"
+        "<b>Time Formats:</b>\n"
+        "<code>10m</code>, <code>1h</code>, <code>1d</code>, <code>1w</code>, <code>permanent</code>\n\n"
         "<b>Usage Note:</b> Admin commands require the bot to have 'Ban Users' privileges."
     )
     await message.reply(text)

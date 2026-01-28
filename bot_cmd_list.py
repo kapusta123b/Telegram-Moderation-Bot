@@ -10,4 +10,6 @@ user_private_commands = [
 admin_group_commands = [
     BotCommand(command="mute", description="Restrict user (reply required)"),
     BotCommand(command="unmute", description="Lift restriction (reply required)"),
+    BotCommand(command="ban", description="Ban user (reply or ID required)"),
+    BotCommand(command="unban", description="Unban user (reply or ID required)"),
 ]
