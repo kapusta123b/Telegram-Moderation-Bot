@@ -1,81 +1,100 @@
-# 🛡 Telegram Profanity Filter Bot
+# 🛡️ Telegram Profanity Filter & Moderation Bot
 
-A lightweight and effective Telegram bot built on **Aiogram 3** for automatically moderating group chats by filtering prohibited Russian language and managing user behavior.
-
----
-
-## Features
-
-- **Automated Moderation**: Scans all incoming messages and edits for banned words.
-- **Warning System**: Issues warnings (1-2/3) before taking action.
-- **Auto-Restriction**: Automatically restricts users from sending messages for 1 hour after 3 violations.
-- **Admin Immunity**: Bot acknowledges administrators but does not restrict them.
-- **Minimalistic Design**: Clean and professional HTML-formatted responses.
+A professional **Telegram moderation tool** built with **Python** and **Aiogram 3**. This bot provides **automatic profanity filtering**, anti-spam protection, and advanced administrative tools to keep your group chats clean and safe.
 
 ---
 
-## Project Architecture
+## ✨ Key Features
+
+- **🚀 Automated Moderation**: Real-time scanning of messages and edits for prohibited keywords.
+- **⚠️ Smart Warning System**: Automatically issues warnings to violators (3/3 limit).
+- **⏳ Auto-Restriction**: Automatically mutes repeat offenders for 1 hour.
+- **🛠️ Admin Toolkit**: Manual `/mute` and `/ban` commands with custom durations.
+- **🛡️ Admin Immunity**: Full recognition and protection for group administrators.
+
+---
+
+## 📋 Available Commands
+
+### 👤 Private Chat
+- `/start` — Start the bot and get an overview.
+- `/help` — Detailed guide on how to use the bot.
+- `/about` — Information about the bot's mission.
+
+### 👥 Group Moderation (Admin Only)
+- `/mute` — Mute a user (Reply to their message).
+- `/unmute` — Restore message permissions (Reply to their message).
+- `/ban` — Ban a user from the group (Reply to message or use User ID).
+- `/unban` — Lift a ban (Use numeric User ID).
+
+> **💡 Time Formats:** For mute/ban, you can specify duration: `10m`, `1h`, `1d`, `1w`, or `permanent`.
+
+---
+
+## 🏗️ Project Architecture
+
+```mermaid
+graph TD
+    A[app.py] --> B(handlers/)
+    A --> C(filters/)
+    B --> B1[user_group.py]
+    B --> B2[user_private.py]
+    B1 --> D[(banwords.txt)]
+    C --> C1[chat_filters.py]
+    C --> C2[group_filters.py]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style D fill:#ffcc00,stroke:#333,stroke-width:2px
+```
 
 ```text
-tg_profanity_bot/
-├── filters/
-│   └── chat_types.py    # Logic to distinguish between private and group chats
-├── handlers/
-│   ├── user_group.py    # Core moderation logic and message handlers
-│   └── banword.txt      # Text-based database for prohibited words
-├── .env                 # Environment variables (Secret Token)
-├── app.py               # Main entry point for the bot
-└── requirements.txt     # Project dependencies
+📦 tg_profanity_bot
+ ┣ 📂 filters           # Custom logic gates for messages
+ ┃ ┣ 📜 chat_filters.py # Private vs Group detection
+ ┃ ┗ 📜 group_filters.py # Admin & Permission checks
+ ┣ 📂 handlers          # The brain of the bot
+ ┃ ┣ 📜 user_group.py   # Automated & Manual moderation
+ ┃ ┣ 📜 user_private.py # Interaction & Help system
+ ┃ ┗ 📜 banwords.txt    # Prohibited keywords database
+ ┣ 📜 app.py            # Main entry point & polling
+ ┗ 📜 bot_cmd_list.py   # Command menu configuration
 ```
 
 ---
 
-## Installation & Setup
+1. **Add the Bot** to your Telegram group.
+2. **Promote to Admin** with the following permissions:
+   - 🗑️ **Delete Messages**
+   - 🚫 **Ban Users**
+3. **Upgrade to Supergroup**: Ensure your chat is a supergroup to enable restriction features.
 
-1. **Clone the repository**:
+---
+
+## ⚙️ Installation
+
+1. **Clone & Enter**:
    ```bash
    git clone <repository_url>
    cd tg_profanity_bot
    ```
-
-2. **Install dependencies**:
+2. **Install**:
    ```bash
    pip install -r requirements.txt
    ```
-
-3. **Configure Environment**:
-   Create a `.env` file in the root directory and add your bot token:
+3. **Configure**:
+   Add your token in .env file and add .env to gitignore:
    ```env
-   SECRET_KEY=your_telegram_bot_token_here
+   SECRET_KEY=your_bot_token
    ```
-
-
-4. **Run the Bot**:
+4. **Launch**:
    ```bash
    python app.py
    ```
 
 ---
 
-## How to Add to Group
+## ⚠️ Important Note
 
-To enable protection, follow these steps:
-1. Add the bot to your Telegram Group.
-2. Go to **Group Settings** > **Administrators**.
-3. Promote the bot to **Admin**.
-4. Enable **Delete Messages** and **Ban Users** permissions.
-5. Turn a regular group into a supergroup so the bot can mute violators.
----
-
-## ⚠️ Disclaimer & Accuracy
-
-> [!IMPORTANT]
-> **Accuracy Notice**: This bot uses a keyword-matching algorithm and string normalization. While effective, it **may result in false positives** (the "Scunthorpe problem") or miss creatively obscured words.
->
-> It is highly recommended to monitor the bot's actions and refine the `banword.txt` list periodically to suit your community's needs.
+This bot uses a keyword-matching system. To ensure the best performance for your community, regularly update the `handlers/banwords.txt` file with words specific to your moderation needs.
 
 ---
-
-## License
-
-This project is licensed under the MIT License.
