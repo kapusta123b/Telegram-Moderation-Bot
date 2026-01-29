@@ -66,18 +66,26 @@ def contains_bad_word(text: str) -> bool:
 
 
 def parse_time(time_str: str) -> datetime | str | None:
+    """
+    Parses a time string (for example, '1m') and returns a datetime object or "permanent".
+    Uses a dictionary to map suffixes (m, h, d, w) to timedelta arguments.
+    """
     if time_str == "permanent":
         return "permanent"
 
-    unit = time_str[-1]
-    units = {"m": "minutes", "h": "hours", "d": "days", "w": "weeks"}
+    unit = time_str[-1] # Extract the last character as the time unit (e.g., 'm' from '10m')
+    units = {"m": "minutes", "h": "hours", "d": "days", "w": "weeks"} # Dictionary mapping suffixes to timedelta keywords
 
-    if unit not in units:
+    if unit not in units: # Return None if the unit is not supported
         return None
 
     try:
+        # Extract the numeric value (everything except the last character) and convert to int
         value = int(time_str[:-1])
-        return datetime.now() + timedelta(**{units[unit]: value})
+
+        # Return a future datetime based on the calculated interval
+        return datetime.now() + timedelta(**{units[unit]: value}) 
+        
 
     except ValueError:
         return None
@@ -105,14 +113,14 @@ async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
             "user_id": user_id,
             "permissions": permissions_mute,
         }
-        if until_date != "permanent":
-            restrict_kwargs["until_date"] = until_date
+        if until_date != "permanent": # If not permanent, specify the expiration date for the restriction
+            restrict_kwargs["until_date"] = until_date 
 
-        await bot.restrict_chat_member(**restrict_kwargs)
+        await bot.restrict_chat_member(**restrict_kwargs) # Unpack arguments and call the restriction method
 
         duration_text = (
             "permanently"
-            if until_date == "permanent"
+            if until_date == "permanent" # Check if parse_time returned the "permanent" flag
             else f"until {until_date.strftime('%Y-%m-%d %H:%M')}"
         )
         await message.reply(
@@ -135,8 +143,7 @@ async def unmute_cmd(message: types.Message, bot: Bot):
             f"✅ <b>Restored:</b> User <b>{message.reply_to_message.from_user.first_name}</b> unmuted."
         )
 
-    except Exception as e:
-        print(f"Error in unmute: {e}")
+    except Exception:
         await message.reply("🚨 <b>System Error:</b> Failed to lift restriction.")
 
 
@@ -147,41 +154,46 @@ async def ban_cmd(message: types.Message, command: CommandObject, bot: Bot):
         return
 
     user_id = (
-        message.reply_to_message.from_user.id if message.reply_to_message else None
+        # get user ID from the replied-to message if the command is a reply
+        message.reply_to_message.from_user.id if message.reply_to_message else None 
     )
-    time_and_id_arg = command.args.split()[0].lower() if command.args else "permanent"
+    time_or_id_arg = command.args.split()[0].lower() if command.args else "permanent"
 
-    if not user_id and time_and_id_arg.isdigit():
-        user_id = int(time_and_id_arg)
-        time_and_id_arg = (
+    if user_id is None and time_or_id_arg.isdigit(): # if no reply, attempt to parse the first argument as a User ID
+        user_id = int(time_or_id_arg)
+        time_or_id_arg = (
             "permanent"
             if len(command.args.split()) < 2
             else command.args.split()[1].lower()
         )
 
-    until_date = parse_time(time_and_id_arg)
+    until_date = parse_time(time_or_id_arg)
 
     try:
         await bot.ban_chat_member(
             chat_id=message.chat.id, user_id=user_id, until_date=until_date
         )
-
         duration_text = (
-            "permanently"
-            if until_date in ("permanent", None)
-            else f"until {until_date.strftime('%Y-%m-%d %H:%M')}"
+            "permanently" 
+            if until_date in ("permanent", None) # Default to permanent if no argument is provided or "permanent" is explicitly used
+            else f"until {until_date.strftime('%Y-%m-%d %H:%M')}" # Format the expiration date if an interval was provided
         )
         name = (
             message.reply_to_message.from_user.first_name
             if message.reply_to_message
             else f"ID: {user_id}"
         )
-        await message.reply(
-            f"🚫 <b>Action:</b> User <b>{name}</b> banned <b>{duration_text}</b>."
+        description = (
+            '\n<b>Description:</b>' + ' '.join(command.args.split(' ')[1:]) # Append all remaining arguments as the ban description
+            if len(command.args.split(" ")) >= 2 # Check if there are additional arguments beyond the first one
+            else None # No description if only one argument is provided (for example /ban 1m)
         )
+        await message.reply(
+            f"🚫 <b>Action:</b> User <b>{name}</b> banned <b>{duration_text}</b>. {description}"
+        )
+
     except Exception:
         await message.reply("🚨 <b>System Error:</b> Failed to ban user.")
-
 
 @user_group_router.message(Command("unban"), IsAdmin(), CanBeRestricted())
 async def unban_cmd(message: types.Message, command: CommandObject, bot: Bot):
@@ -195,16 +207,21 @@ async def unban_cmd(message: types.Message, command: CommandObject, bot: Bot):
         else:
             user_id = int(command.args.split()[0])
 
-        await bot.unban_chat_member(
-            chat_id=message.chat.id, user_id=user_id, only_if_banned=True
-        )
+        member = await bot.get_chat_member(chat_id=message.chat.id, user_id=user_id)
 
-        name = (
-            message.reply_to_message.from_user.first_name
-            if message.reply_to_message
-            else f"ID: {user_id}"
-        )
-        await message.reply(f"✅ <b>Restored:</b> User <b>{name}</b> unbanned.")
+        if member.status == "kicked":
+            await bot.unban_chat_member(
+                chat_id=message.chat.id, user_id=user_id, only_if_banned=True
+            )
+
+            name = (
+                message.reply_to_message.from_user.first_name
+                if message.reply_to_message
+                else f"ID: {user_id}"
+            )
+            await message.reply(f"✅ <b>Restored:</b> User <b>{name}</b> unbanned.")
+        else:
+            await message.reply("ℹ️ <b>Info:</b> User is not banned or is already a member.")
 
     except ValueError:
         await message.reply("⚠️ <b>Invalid Format:</b> Use numeric User ID.")
