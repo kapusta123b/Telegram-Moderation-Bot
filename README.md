@@ -22,12 +22,13 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 - `/about` — Information about the bot's mission.
 
 ### 👥 Group Moderation (Admin Only)
-- `/mute` — Mute a user (Reply to their message).
+- `/mute [duration/ID] [set]` — Mute a user (Reply to message or use User ID).
 - `/unmute` — Restore message permissions (Reply to their message).
-- `/ban` — Ban a user from the group (Reply to message or use User ID).
-- `/unban` — Lift a ban (Use numeric User ID).
+- `/ban [duration/ID] [set]` — Ban a user from the group (Reply to message or use User ID).
+- `/unban [ID]` — Lift a ban (Use numeric User ID or reply).
 
-> **💡 Time Formats:** For mute/ban, you can specify duration: `10m`, `1h`, `1d`, `1w`, or `permanent`.
+> **💡 Time Formats:** `10m`, `1h`, `1d`, `1w`, or `permanent`.
+> **🛠️ The 'set' Argument:** Use `set` to update or extend the duration for a user who is already restricted (e.g., `/mute 1h set`).
 
 ---
 

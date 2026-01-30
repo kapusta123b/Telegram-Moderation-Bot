@@ -64,6 +64,48 @@ def contains_bad_word(text: str) -> bool:
             return True
     return False
 
+@user_group_router.edited_message
+@user_group_router.message()
+async def cleaner(message: types.Message, bot: Bot):
+    if not message.text:
+        return
+
+    if not contains_bad_word(message.text):
+        return
+
+    user_id = message.from_user.id
+    first_name = message.from_user.first_name
+
+    warnings = users.get(user_id, 0) + 1
+    users[user_id] = warnings
+
+    member = await bot.get_chat_member(message.chat.id, user_id)
+    if member.status in ("creator", "administrator"):
+        await message.answer(
+            "⚠️ <b>Admin Notice:</b> Please maintain professional language."
+        )
+        return
+
+    if warnings < 3:
+        await message.answer(
+            f"⚠️ <b>Warning {warnings}/3:</b> <b>{first_name}</b>, please refrain from using prohibited language in this chat.",
+        )
+        await message.delete()
+        return
+
+    users[user_id] = 0
+
+    await bot.restrict_chat_member(
+        chat_id=message.chat.id,
+        user_id=user_id,
+        permissions=permissions_mute,
+        until_date=datetime.now() + timedelta(minutes=60),
+    )
+
+    await message.answer(
+        text=f"🚫 <b>Access Restricted:</b> User <b>{first_name}</b> has reached the limit of <b>3/3 warnings</b>.\n<i>A 1-hour restriction has been applied.</i>",
+    )
+    await message.delete()
 
 def parse_time(time_str: str) -> datetime | str | None:
     """
@@ -80,13 +122,10 @@ def parse_time(time_str: str) -> datetime | str | None:
         return None
 
     try:
-        # Extract the numeric value (everything except the last character) and convert to int
-        value = int(time_str[:-1])
-
+        value = int(time_str[:-1]) # Extract the numeric value (everything except the last character) and convert to int
         # Return a future datetime based on the calculated interval
         return datetime.now() + timedelta(**{units[unit]: value}) 
         
-
     except ValueError:
         return None
 
@@ -103,6 +142,7 @@ async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
         # Get user ID from the replied-to message if the command is a reply
         message.reply_to_message.from_user.id if message.reply_to_message else None 
     )
+
     time_arg = command.args.split()[0].lower() if command.args else "permanent"
 
     if user_id is None and time_arg.isdigit(): # If no reply, attempt to parse the first argument as a User ID
@@ -127,6 +167,7 @@ async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
             "user_id": user_id,
             "permissions": permissions_mute,
         }
+
         if until_date != "permanent": # If not permanent, specify the expiration date for the restriction
             restrict_kwargs["until_date"] = until_date 
 
@@ -152,13 +193,16 @@ async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
             )
 
             status_text = ",mute has been extended" if set_arg else " muted"
+
             await message.reply(
                 f"🚫 <b>Action:</b> User <b>{name}</b>{status_text} <b>{duration_text}</b>. {description if description else ''}"
             )
+
         else:
             await message.reply(
                 "⚠️ <b>Notice:</b> This user is already muted. Use the <code>set</code> argument to update the duration (e.g., <code>/mute 10m set</code>)."
             )
+
     except Exception:
         await message.reply("🚨 <b>System Error:</b> Failed to restrict user.")
 
@@ -167,6 +211,7 @@ async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
 async def unmute_cmd(message: types.Message, bot: Bot):
     user_id = message.reply_to_message.from_user.id
     target = await bot.get_chat_member(chat_id=message.chat.id, user_id=user_id)
+
     try:
         if target.status == 'restricted':
             await bot.restrict_chat_member(
@@ -187,7 +232,6 @@ async def ban_cmd(message: types.Message, command: CommandObject, bot: Bot):
     if not message.reply_to_message and not command.args:
         await message.reply("❌ <b>Error:</b> Provide duration or reply to a message.")
         return
-    
 
     user_id = (
         # get user ID from the replied-to message if the command is a reply
@@ -270,53 +314,9 @@ async def unban_cmd(message: types.Message, command: CommandObject, bot: Bot):
 
     except ValueError:
         await message.reply("⚠️ <b>Invalid Format:</b> Use numeric User ID.")
+
     except Exception:
         await message.reply("🚨 <b>System Error:</b> Failed to unban user.")
-
-
-@user_group_router.edited_message
-@user_group_router.message()
-async def cleaner(message: types.Message, bot: Bot):
-    if not message.text:
-        return
-
-    if not contains_bad_word(message.text):
-        return
-
-    user_id = message.from_user.id
-    first_name = message.from_user.first_name
-
-    warnings = users.get(user_id, 0) + 1
-    users[user_id] = warnings
-
-    member = await bot.get_chat_member(message.chat.id, user_id)
-    if member.status in ("creator", "administrator"):
-        await message.answer(
-            "⚠️ <b>Admin Notice:</b> Please maintain professional language."
-        )
-        return
-
-    if warnings < 3:
-        await message.answer(
-            f"⚠️ <b>Warning {warnings}/3:</b> <b>{first_name}</b>, please refrain from using prohibited language in this chat.",
-        )
-        await message.delete()
-        return
-
-    users[user_id] = 0
-
-    await bot.restrict_chat_member(
-        chat_id=message.chat.id,
-        user_id=user_id,
-        permissions=permissions_mute,
-        until_date=datetime.now() + timedelta(minutes=60),
-    )
-
-    await message.answer(
-        text=f"🚫 <b>Access Restricted:</b> User <b>{first_name}</b> has reached the limit of <b>3/3 warnings</b>.\n<i>A 1-hour restriction has been applied.</i>",
-    )
-    await message.delete()
-
 
 @user_group_router.my_chat_member()
 async def on_bot_added_to_group(event: types.ChatMemberUpdated):

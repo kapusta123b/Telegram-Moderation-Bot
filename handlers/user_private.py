@@ -72,12 +72,14 @@ async def commands_cmd(message: types.Message):
     text = (
         "<b>📜 Available Commands</b>\n\n"
         "<b>Group Administration:</b>\n"
-        "• /mute <code>[time]</code> - Mute user (reply required).\n"
+        "• /mute <code>[time/ID] [set]</code> - Mute user (reply or ID required).\n"
         "• /unmute - Unmute user (reply required).\n"
-        "• /ban <code>[time/ID]</code> - Ban user (reply or ID required).\n"
+        "• /ban <code>[time/ID] [set]</code> - Ban user (reply or ID required).\n"
         "• /unban <code>[ID]</code> - Unban user (reply or ID required).\n\n"
         "<b>Time Formats:</b>\n"
         "<code>10m</code>, <code>1h</code>, <code>1d</code>, <code>1w</code>, <code>permanent</code>\n\n"
+        "<b>Arguments:</b>\n"
+        "• <code>set</code> - Use this to update or extend the duration for a user who is already restricted.\n\n"
         "<b>Usage Note:</b> Admin commands require the bot to have 'Ban Users' privileges."
     )
     await message.reply(text)
