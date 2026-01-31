@@ -140,8 +140,8 @@ graph TD
 
 1. **Clone & Enter**:
    ```bash
-   git clone <repository_url>
-   cd tg_profanity_bot
+   git clone https://github.com/kapusta123b/Telegram-Moderation-Bot
+   cd Telegram-Moderation-Bot
    ```
 2. **Install**:
    ```bash
@@ -163,10 +163,20 @@ graph TD
 
 This bot uses a keyword-matching system. To ensure the best performance for your community, regularly update the `handlers/banwords.txt` file with words specific to your moderation needs.
 
+---
+
+## 📊 Repository Stats
+
+<p align="center">
+  <img src="https://github-readme-stats.vercel.app/api/pin/?username=kapusta123b&repo=Telegram-Moderation-Bot&theme=transparent&show_owner=true" alt="Repo Stats" />
+</p>
+
+---
+
 ## 🤝 Support & Connect
 
 <p align="center">
-  <a href="https://t.me/@kapusta123b">
+  <a href="https://t.me/kapusta123b">
     <img src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram" />
   </a>
   <a href="https://github.com/kapusta123b/Telegram-Moderation-Bot/stargazers">
@@ -181,5 +191,5 @@ This bot uses a keyword-matching system. To ensure the best performance for your
 </p>
 
 <p align="center">
-  <sub>Built with ❤️ for clean communities</sub>
+  <sub>Сделано с ❤️ для чистых сообществ</sub>
 </p>
