@@ -115,7 +115,7 @@ graph TD
 ## 📂 File Structure
 
 ```text
-📦 tg_profanity_bot
+📦 Telegram-Moderation-Bot
  ┣ 📂 database          # SQLAlchemy 2.0 models & async requests
  ┣ 📂 filters           # Custom logic gates for messages
  ┣ 📂 handlers          # The brain of the bot (Group & Private)
