@@ -40,12 +40,14 @@ async def about_cmd(message: types.Message):
     text = (
         "<b>🛡️ Professional Moderation Service</b>\n\n"
         "I am designed to act as a silent guardian for your chat. By utilizing a robust "
-        "keyword filtering system, I identify and manage profanity in real-time.\n\n"
+        "keyword filtering system and <b>persistent storage (SQLAlchemy 2.0)</b>, I identify "
+        "and manage violations in real-time.\n\n"
         "<b>Core Capabilities:</b>\n"
+        "• <i>Persistent Tracking</i>: All warnings and mutes are saved in a database.\n"
         "• <i>Real-time Scanning</i> of all messages and edits.\n"
         "• <i>Automated Warning System</i> to educate users before taking action.\n"
-        "• <i>Temporary Restrictions</i> (1 hour) for repeat violators.\n"
-        "• <i>Manual Moderation</i> tools for administrators to ban or mute users.\n\n"
+        "• <i>Progressive Mutes</i>: Intelligent scaling of restrictions (up to several days).\n"
+        "• <i>Manual Moderation</i>: Admins can use /warn, /mute, or /ban.\n\n"
         "I respect your administrators and ensure they retain full control while I handle "
         "the routine moderation tasks."
     )
