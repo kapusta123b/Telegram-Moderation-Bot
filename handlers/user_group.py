@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 user_group_router = Router()
 user_group_router.message.filter(ChatTypeFilter(["group", "supergroup"]))
 
-BAD_WORDS_FILE = Path(__file__).parent / "banwords.txt"
+BAD_WORDS_FILE = "database/banwords.txt"
 
 with open(BAD_WORDS_FILE, encoding="utf-8") as f:
     BAD_WORDS = {line.strip().lower() for line in f if line.strip()}
