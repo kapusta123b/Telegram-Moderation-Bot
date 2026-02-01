@@ -88,59 +88,30 @@ def get_mute_duration(mutes_count: int) -> timedelta:
     multiplier = 1.5 ** extra_mutes
     return timedelta(seconds=base_time * multiplier)
 
-@user_group_router.edited_message
-@user_group_router.message()
-async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
-    """
-    Main message filter that scans for profanity and manages warnings/mutes.
-    """
-    if not message.text:
-        return
 
-    if not contains_bad_word(message.text):
-        return
+async def handle_punishment(message: types.Message, bot: Bot, user: types.User, mutes: int):
+    duration = get_mute_duration(mutes)
+    until_date = datetime.now() + duration
 
-    user = message.from_user
+    await bot.restrict_chat_member(
+        chat_id=message.chat.id,
+        user_id=user.id,
+        permissions=permissions_mute,
+        until_date=until_date,
+    )
 
-    member = await bot.get_chat_member(message.chat.id, user.id)
-    if member.status in ("creator", "administrator"):
-        await message.answer(
-            "⚠️ <b>Admin Notice:</b> Please maintain professional language."
-        )
-        return
-    
-    current_warns, mutes = await add_warn(session, user.id)
+    hours = int(duration.total_seconds() // 3600)
+    days = hours // 24
+    duration_str = f"{days} days" if days > 0 else f"{hours} hours"
 
-    if current_warns < 3:
-        await message.answer(
-            f"⚠️ <b>Warning {current_warns}/3:</b> <b>{user.first_name}</b>, please refrain from using prohibited language in this chat.",
-        )
-        await message.delete()
-        return
-    else:
-        duration = get_mute_duration(mutes)
-        until_date = datetime.now() + duration
-
-        await bot.restrict_chat_member(
-            chat_id=message.chat.id,
-            user_id=user.id,
-            permissions=permissions_mute,
-            until_date=until_date,
-        )
-
-        hours = int(duration.total_seconds() // 3600)
-        days = hours // 24
-        duration_str = f"{days} days" if days > 0 else f"{hours} hours"
-
-        await message.answer(
-            text=f"🚫 <b>Access Restricted:</b> User <b>{user.first_name}</b> has reached the limit of <b>3/3 warnings</b>.\n"
-                 f"<i>A {duration_str} restriction has been applied (Mute #{mutes}).</i>",
-        )
-        await message.delete()
+    await message.reply(
+        text=f"🚫 <b>Access Restricted:</b> User <b>{user.first_name}</b> has reached the limit of <b>3/3 warnings</b>.\n"
+            f"<i>A {duration_str} restriction has been applied (Mute #{mutes}).</i>",
+    )
 
 
 @user_group_router.message(Command("warn"), IsAdmin())
-async def warn_command(message: types.Message, session: AsyncSession):
+async def warn_command(message: types.Message, bot: Bot, session: AsyncSession):
     """
     Manual warning command for administrators to discipline users.
     """
@@ -149,10 +120,13 @@ async def warn_command(message: types.Message, session: AsyncSession):
         # Increment warnings and get current stats
         current_warns, mutes = await add_warn(session, target_user.id)
         
-        await message.answer(
-            f"🔘 <b>Action:</b> Warning issued to <b>{target_user.first_name}</b>.\n"
-            f"📊 <b>Total Warnings:</b> {current_warns}/3"
-        )
+        if current_warns < 3:
+            await message.reply(
+                f"🔘 <b>Action:</b> Warning issued to <b>{target_user.first_name}</b>.\n"
+                f"📊 <b>Total Warnings:</b> {current_warns}/3"
+            )
+        else:
+            await handle_punishment(message.reply_to_message, bot, target_user, mutes)
     else:
         await message.reply("⚠️ <b>Notice:</b> This command must be used in a reply.")
 
@@ -332,6 +306,41 @@ async def ban_cmd(message: types.Message, command: CommandObject, bot: Bot):
 
     except Exception:
         await message.reply("🚨 <b>System Error:</b> Failed to ban user.")
+
+@user_group_router.edited_message
+@user_group_router.message()
+async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
+    """
+    Main message filter that scans for profanity and manages warnings/mutes.
+    """
+    if not message.text:
+        return
+
+    if not contains_bad_word(message.text):
+        return
+
+    user = message.reply_to_message.from_user if message.reply_to_message else message.from_user
+    member = await bot.get_chat_member(message.chat.id, user.id)
+    
+    if member.status in ("creator", "administrator"):
+        await message.reply(
+            "⚠️ <b>Admin Notice:</b> Please maintain professional language."
+        )
+        return
+    
+    current_warns, mutes = await add_warn(session, user.id)
+
+    if current_warns < 3:
+        await message.reply(
+            f"⚠️ <b>Warning {current_warns}/3:</b> <b>{user.first_name}</b>, please refrain from using prohibited language in this chat.",
+        )
+        await message.delete()
+        return
+    
+    else:
+        target_message = message.reply_to_message if message.reply_to_message else message
+        await handle_punishment(target_message, bot, user, mutes)
+        await message.delete()
 
 @user_group_router.message(Command("unban"), IsAdmin(), CanBeRestricted())
 async def unban_cmd(message: types.Message, command: CommandObject, bot: Bot):
