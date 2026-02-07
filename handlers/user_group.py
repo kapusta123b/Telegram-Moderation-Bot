@@ -1,10 +1,10 @@
-from pathlib import Path
-
 from string import punctuation
 
-from aiogram import Bot, types, Router
-from aiogram.filters import Command
+from aiogram import Bot, types, Router, F
+from aiogram.filters import Command, ChatMemberUpdatedFilter, JOIN_TRANSITION
 from aiogram.filters.command import CommandObject
+
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from database.requests import add_warn
 from filters.group_filters import IsAdmin, CanBeRestricted
@@ -109,7 +109,6 @@ async def handle_punishment(message: types.Message, bot: Bot, user: types.User, 
             f"<i>A {duration_str} restriction has been applied (Mute #{mutes}).</i>",
     )
 
-
 @user_group_router.message(Command("warn"), IsAdmin())
 async def warn_command(message: types.Message, bot: Bot, session: AsyncSession):
     """
@@ -151,7 +150,6 @@ def parse_time(time_str: str) -> datetime | str | None:
         
     except ValueError:
         return None
-
 
 @user_group_router.message(Command("mute"), IsAdmin(), CanBeRestricted())
 async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
@@ -229,7 +227,6 @@ async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
     except Exception:
         await message.reply("🚨 <b>System Error:</b> Failed to restrict user.")
 
-
 @user_group_router.message(Command("unmute"), IsAdmin(), CanBeRestricted())
 async def unmute_cmd(message: types.Message, bot: Bot):
     user_id = message.reply_to_message.from_user.id
@@ -248,7 +245,6 @@ async def unmute_cmd(message: types.Message, bot: Bot):
 
     except Exception:
         await message.reply("🚨 <b>System Error:</b> Failed to lift restriction.")
-
 
 @user_group_router.message(Command("ban"), IsAdmin(), CanBeRestricted())
 async def ban_cmd(message: types.Message, command: CommandObject, bot: Bot):
@@ -375,6 +371,48 @@ async def unban_cmd(message: types.Message, command: CommandObject, bot: Bot):
 
     except Exception:
         await message.reply("🚨 <b>System Error:</b> Failed to unban user.")
+
+@user_group_router.chat_member(ChatMemberUpdatedFilter(member_status_changed=JOIN_TRANSITION))
+async def bot_added(event: types.ChatMemberUpdated):
+    await event.bot.restrict_chat_member(
+        chat_id=event.chat.id,
+        user_id=event.new_chat_member.user.id,
+        permissions=permissions_mute
+    )
+
+    builder = InlineKeyboardBuilder()
+
+    builder.add(types.InlineKeyboardButton(
+            text="✅ I'm not a robot!",
+            callback_data=f'not_bot:{event.new_chat_member.user.id}')
+    )
+
+    await event.bot.send_message(
+        chat_id=event.chat.id,
+        text=f"🤖 <b>Verification:</b> Hello <b>{event.new_chat_member.user.first_name}</b>, please confirm that you are not a robot to join the conversation!",
+        reply_markup=builder.as_markup()
+    )
+
+@user_group_router.callback_query(F.data.startswith("not_bot:"))
+async def captcha_unmute(callback: types.CallbackQuery):
+    target_user_id = int(callback.data.split(":")[1])
+
+    if callback.from_user.id == target_user_id:
+        await callback.bot.restrict_chat_member(
+            chat_id=callback.message.chat.id,
+            user_id=callback.from_user.id,
+            permissions=permissions_unmute
+        )
+
+        await callback.answer(
+            text="✅ Verified! Thank you, you can now send messages.",
+            show_alert=True
+        )
+
+        await callback.message.delete()
+    else:
+        await callback.answer("⚠️ This verification is not for you!", show_alert=True)
+        return
 
 @user_group_router.my_chat_member()
 async def on_bot_added_to_group(event: types.ChatMemberUpdated):

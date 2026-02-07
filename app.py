@@ -17,7 +17,7 @@ from aiogram.enums import ParseMode
 from aiogram import Bot, Dispatcher, types
 
 
-ALLOWED_UPDATES = ["message", "edited_message", "my_chat_member"]
+ALLOWED_UPDATES = ["message", "edited_message", "my_chat_member", "chat_member", "callback_query"]
 
 bot = Bot(
     token=os.environ.get('SECRET_KEY'),  # write your secret token in .env file
