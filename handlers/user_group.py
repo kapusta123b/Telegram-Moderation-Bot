@@ -305,6 +305,10 @@ async def ban_cmd(message: types.Message, command: CommandObject, bot: Bot):
     except Exception:
         await message.reply("🚨 <b>System Error:</b> Failed to ban user.")
 
+@user_group_router.message(F.new_chat_member | F.left_chat_member)
+async def delete_system_message(message: types.Message):
+    await message.delete()
+
 @user_group_router.edited_message
 @user_group_router.message()
 async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
@@ -375,7 +379,7 @@ async def unban_cmd(message: types.Message, command: CommandObject, bot: Bot):
         await message.reply("🚨 <b>System Error:</b> Failed to unban user.")
 
 @user_group_router.chat_member(ChatMemberUpdatedFilter(member_status_changed=JOIN_TRANSITION))
-async def bot_added(event: types.ChatMemberUpdated):
+async def captcha(event: types.ChatMemberUpdated):
     user_id = event.new_chat_member.user.id
     
     await event.bot.restrict_chat_member(
@@ -400,7 +404,7 @@ async def bot_added(event: types.ChatMemberUpdated):
         user_id=user_id
     )
     
-    if current_member.status == "restricted":
+    if current_member.status in ("restricted", "left", "kicked"):
         await event.bot.send_message(
             chat_id=event.chat.id,
             text=f"❌ <b>{event.new_chat_member.user.first_name}</b> failed verification and has been restricted for 24 hours.")
@@ -410,7 +414,10 @@ async def bot_added(event: types.ChatMemberUpdated):
             user_id=user_id,
             until_date=datetime.now() + timedelta(days=1))
         
-        await captcha_msg.delete()
+        try:
+            await captcha_msg.delete()
+        except Exception:
+            pass
 
 @user_group_router.callback_query(F.data.startswith("not_bot:"))
 async def captcha_unmute(callback: types.CallbackQuery):
