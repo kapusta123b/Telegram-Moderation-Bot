@@ -1,5 +1,7 @@
 from string import punctuation
 
+from asyncio import sleep
+
 from aiogram import Bot, types, Router, F
 from aiogram.filters import Command, ChatMemberUpdatedFilter, JOIN_TRANSITION
 from aiogram.filters.command import CommandObject
@@ -374,24 +376,41 @@ async def unban_cmd(message: types.Message, command: CommandObject, bot: Bot):
 
 @user_group_router.chat_member(ChatMemberUpdatedFilter(member_status_changed=JOIN_TRANSITION))
 async def bot_added(event: types.ChatMemberUpdated):
+    user_id = event.new_chat_member.user.id
+    
     await event.bot.restrict_chat_member(
         chat_id=event.chat.id,
-        user_id=event.new_chat_member.user.id,
-        permissions=permissions_mute
-    )
+        user_id=user_id,
+        permissions=permissions_mute)
 
-    builder = InlineKeyboardBuilder()
-
-    builder.add(types.InlineKeyboardButton(
+    builder = InlineKeyboardBuilder().add(
+        types.InlineKeyboardButton(
             text="✅ I'm not a robot!",
-            callback_data=f'not_bot:{event.new_chat_member.user.id}')
-    )
+            callback_data=f'not_bot:{user_id}'))
 
-    await event.bot.send_message(
+    captcha_msg = await event.bot.send_message(
         chat_id=event.chat.id,
         text=f"🤖 <b>Verification:</b> Hello <b>{event.new_chat_member.user.first_name}</b>, please confirm that you are not a robot to join the conversation!",
-        reply_markup=builder.as_markup()
+        reply_markup=builder.as_markup())
+
+    await sleep(300)
+    
+    current_member = await event.bot.get_chat_member(
+        chat_id=event.chat.id, 
+        user_id=user_id
     )
+    
+    if current_member.status == "restricted":
+        await event.bot.send_message(
+            chat_id=event.chat.id,
+            text=f"❌ <b>{event.new_chat_member.user.first_name}</b> failed verification and has been restricted for 24 hours.")
+        
+        await event.bot.ban_chat_member(
+            chat_id=event.chat.id,
+            user_id=user_id,
+            until_date=datetime.now() + timedelta(days=1))
+        
+        await captcha_msg.delete()
 
 @user_group_router.callback_query(F.data.startswith("not_bot:"))
 async def captcha_unmute(callback: types.CallbackQuery):

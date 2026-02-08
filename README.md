@@ -36,10 +36,11 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 
 ## ✨ Key Features
 
+- **🛡️ Join Captcha**: Automated anti-bot verification for new members with timed auto-kick.
 - **🚀 Automated Moderation**: Real-time scanning of messages and edits for prohibited keywords.
 - **💾 Persistent Storage**: SQLite database powered by **SQLAlchemy 2.0** to track violation history.
-- **⚠️ Smart Warning System**: Automatically issues warnings to violators (3/3 limit).
-- **📈 Progressive Mutes**: Intelligent restriction system that scales automatically.
+- **⚠️ Smart Warning System**: Automatically issues warnings to violators (3/3 warnings lead to auto-mute).
+- **📈 Progressive Mutes**: Intelligent restriction system that scales based on history.
 - **🛠️ Admin Toolkit**: Manual `/warn`, `/mute`, and `/ban` commands with custom durations.
 - **🛡️ Admin Immunity**: Full recognition and protection for group administrators.
 
@@ -50,13 +51,14 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 ### 👤 Private Chat
 - `/start` — Start the bot and get an overview.
 - `/help` — Detailed guide on how to use the bot.
-- `/about` — Information about the bot's mission and technical stack.
+- `/about` — Information about the bot's features and technical stack.
+- `/how_use_bot` — Step-by-step setup instructions.
 
 ### 👥 Group Moderation (Admin Only)
 - `/warn` — Issue a formal warning (Reply required).
 - `/mute [duration/ID] [set]` — Mute a user (Reply or User ID).
-- `/unmute` — Restore message permissions.
-- `/ban [duration/ID] [set]` — Ban a user from the group.
+- `/unmute` — Restore message permissions (Reply required).
+- `/ban [duration/ID] [set]` — Ban a user from the group (Reply or User ID).
 - `/unban [ID]` — Lift a ban (Reply or User ID).
 
 > **💡 Time Formats:** `10m`, `1h`, `1d`, `1w`, or `permanent`.

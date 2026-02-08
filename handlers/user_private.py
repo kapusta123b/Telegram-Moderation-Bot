@@ -43,10 +43,11 @@ async def about_cmd(message: types.Message):
         "keyword filtering system and <b>persistent storage (SQLAlchemy 2.0)</b>, I identify "
         "and manage violations in real-time.\n\n"
         "<b>Core Capabilities:</b>\n"
+        "• <i>Join Captcha</i>: Anti-bot verification for new members with auto-kick.\n"
         "• <i>Persistent Tracking</i>: All warnings and mutes are saved in a database.\n"
         "• <i>Real-time Scanning</i> of all messages and edits.\n"
-        "• <i>Automated Warning System</i> to educate users before taking action.\n"
-        "• <i>Progressive Mutes</i>: Intelligent scaling of restrictions (up to several days).\n"
+        "• <i>Automated Warning System</i> (3/3 warnings lead to auto-mute).\n"
+        "• <i>Progressive Mutes</i>: Intelligent scaling of restrictions.\n"
         "• <i>Manual Moderation</i>: Admins can use /warn, /mute, or /ban.\n\n"
         "I respect your administrators and ensure they retain full control while I handle "
         "the routine moderation tasks."
@@ -63,7 +64,7 @@ async def how_to_use_cmd(message: types.Message):
         "2. <b>Promote to Administrator</b> and ensure <i>Delete Messages</i> and "
         "<i>Ban Users</i> permissions are enabled.\n"
         "3. <b>Supergroup Activation</b>: Confirm your chat is a Supergroup to allow "
-        "me to restrict members.\n\n"
+        "me to restrict members and use the captcha feature.\n\n"
         "Once configured, you can use commands by <b>replying</b> to messages or by providing a <b>User ID</b>."
     )
     await message.reply(text)
@@ -74,6 +75,7 @@ async def commands_cmd(message: types.Message):
     text = (
         "<b>📜 Available Commands</b>\n\n"
         "<b>Group Administration:</b>\n"
+        "• /warn - Issue a formal warning (reply required).\n"
         "• /mute <code>[time/ID] [set]</code> - Mute user (reply or ID required).\n"
         "• /unmute - Unmute user (reply required).\n"
         "• /ban <code>[time/ID] [set]</code> - Ban user (reply or ID required).\n"
