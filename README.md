@@ -167,14 +167,6 @@ This bot uses a keyword-matching system. To ensure the best performance for your
 
 ---
 
-## 📊 Repository Stats
-
-<p align="center">
-  <img src="https://github-readme-stats.vercel.app/api/pin/?username=kapusta123b&repo=Telegram-Moderation-Bot&theme=transparent&show_owner=true" alt="Repo Stats" />
-</p>
-
----
-
 ## 🤝 Support & Connect
 
 <p align="center">
@@ -193,5 +185,5 @@ This bot uses a keyword-matching system. To ensure the best performance for your
 </p>
 
 <p align="center">
-  <sub>Сделано с ❤️ для чистых сообществ</sub>
+  <sub>Made with ❤️ for clean communities</sub>
 </p>
