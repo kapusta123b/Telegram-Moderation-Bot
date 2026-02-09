@@ -43,7 +43,8 @@ async def about_cmd(message: types.Message):
         "keyword filtering system and <b>persistent storage (SQLAlchemy 2.0)</b>, I identify "
         "and manage violations in real-time.\n\n"
         "<b>Core Capabilities:</b>\n"
-        "• <i>Join Captcha</i>: Anti-bot verification for new members with auto-kick.\n"
+        "• <i>Join Captcha</i>: Anti-bot verification for new members (5m timeout).\n"
+        "• <i>Moderation Logs</i>: Track all actions in a dedicated channel using /admin_chat.\n"
         "• <i>Persistent Tracking</i>: All warnings and mutes are saved in a database.\n"
         "• <i>Real-time Scanning</i> of all messages and edits.\n"
         "• <i>Automated Warning System</i> (3/3 warnings lead to auto-mute).\n"
@@ -75,6 +76,7 @@ async def commands_cmd(message: types.Message):
     text = (
         "<b>📜 Available Commands</b>\n\n"
         "<b>Group Administration:</b>\n"
+        "• /admin_chat - Set the current chat as the Admin Log Channel.\n"
         "• /warn - Issue a formal warning (reply required).\n"
         "• /mute <code>[time/ID] [set]</code> - Mute user (reply or ID required).\n"
         "• /unmute - Unmute user (reply required).\n"

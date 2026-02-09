@@ -43,6 +43,7 @@ user_private_commands = [
 ]
 
 admin_group_commands = [
+    BotCommand(command="admin_chat", description="Set the current chat as the Admin Log Channel"),
     BotCommand(command="warn", description="Issue a warning (reply required)"),
     BotCommand(command="mute", description="Restrict user (reply or ID required)"),
     BotCommand(command="unmute", description="Lift restriction (reply required)"),

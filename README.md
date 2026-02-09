@@ -36,12 +36,14 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 
 ## ✨ Key Features
 
-- **🛡️ Join Captcha**: Automated anti-bot verification for new members with timed auto-kick.
+- **🛡️ Join Captcha**: Automated anti-bot verification for new members with a 5-minute timeout and 24-hour ban for failures.
 - **🚀 Automated Moderation**: Real-time scanning of messages and edits for prohibited keywords.
+- **📜 Moderation Logs**: Dedicated logging system to track all administrative actions in a chosen channel.
+- **🧹 System Cleanup**: Automatically removes "user joined" and "user left" system messages for a cleaner chat.
 - **💾 Persistent Storage**: SQLite database powered by **SQLAlchemy 2.0** to track violation history.
 - **⚠️ Smart Warning System**: Automatically issues warnings to violators (3/3 warnings lead to auto-mute).
-- **📈 Progressive Mutes**: Intelligent restriction system that scales based on history.
-- **🛠️ Admin Toolkit**: Manual `/warn`, `/mute`, and `/ban` commands with custom durations.
+- **📈 Progressive Mutes**: Intelligent restriction system that scales based on history (1h -> 2.5h -> 4h -> 24h -> 3d -> 1.5x scaling).
+- **🛠️ Admin Toolkit**: Manual `/warn`, `/mute`, and `/ban` commands with custom durations and reasons.
 - **🛡️ Admin Immunity**: Full recognition and protection for group administrators.
 
 ---
@@ -55,6 +57,7 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 - `/how_use_bot` — Step-by-step setup instructions.
 
 ### 👥 Group Moderation (Admin Only)
+- `/admin_chat` — Set the current chat as the **Admin Log Channel**.
 - `/warn` — Issue a formal warning (Reply required).
 - `/mute [duration/ID] [set]` — Mute a user (Reply or User ID).
 - `/unmute` — Restore message permissions (Reply required).
@@ -69,61 +72,64 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 
 ```mermaid
 graph TD
-    subgraph Core[Bot Engine]
+    subgraph Core[Bot Entry Point]
         A[app.py]
     end
 
-    subgraph Logic[Logic & Routing]
+    subgraph Config[Central Configuration]
+        CFG[config/config.py]
+    end
+
+    subgraph Logic[Request Processing]
         B(handlers/)
         C(filters/)
         F(middlewares/)
+        B1[user_group.py]
+        B2[user_private.py]
     end
 
-    subgraph Storage[Data Persistence]
+    subgraph Data[Persistence & Assets]
         E(database/)
         D[(banwords.txt)]
+        E1[engine.py]
+        E2[models.py]
+        E3[requests.py]
     end
 
-    A --> B
-    A --> C
-    A --> E
+    A --> CFG
     A --> F
+    F --> B
+    B --> C
+    B --> E
+    B --> D
     
-    B --> B1[user_group.py]
-    B --> B2[user_private.py]
-    B1 -.-> D
+    B1 --- B
+    B2 --- B
     
-    E --> E1[engine.py]
-    E --> E2[models.py]
-    E --> E3[requests.py]
-    
-    F --> F1[db.py]
+    E1 --- E
+    E2 --- E
+    E3 --- E
     
     %% Dark Professional Theme
     style Core fill:#1a1a1a,stroke:#444,stroke-width:2px,color:#fff
-    style Storage fill:#2d2d2d,stroke:#555,stroke-width:2px,color:#fff
+    style Config fill:#3d3d3d,stroke:#666,stroke-width:2px,color:#fff
+    style Data fill:#2d2d2d,stroke:#555,stroke-width:2px,color:#fff
     style Logic fill:#252525,stroke:#444,stroke-width:1px,color:#ccc
     style D fill:#333,stroke:#ffd700,stroke-width:2px,color:#ffd700
-    style B1 fill:#222,stroke:#666,color:#fff
-    style B2 fill:#222,stroke:#666,color:#fff
-    style E1 fill:#222,stroke:#666,color:#fff
-    style E2 fill:#222,stroke:#666,color:#fff
-    style E3 fill:#222,stroke:#666,color:#fff
-    style F1 fill:#222,stroke:#666,color:#fff
 ```
-
----
 
 ## 📂 File Structure
 
 ```text
 📦 Telegram-Moderation-Bot
- ┣ 📂 database          # SQLAlchemy 2.0 models & async requests
- ┣ 📂 filters           # Custom logic gates for messages
- ┣ 📂 handlers          # The brain of the bot (Group & Private)
- ┣ 📂 middlewares       # Database session injection
- ┣ 📜 app.py            # Main entry point & polling
- ┗ 📜 bot_cmd_list.py   # Command menu configuration
+ ┣ 📂 config             # Permissions, commands, and timing settings
+ ┣ 📂 database           # SQLAlchemy 2.0 models & async requests
+ ┣ 📂 filters            # Custom logic for Admin & Chat-type validation
+ ┣ 📂 handlers           # Core logic: Profanity filter, Captcha, Admin tools
+ ┣ 📂 middlewares        # DB session injection & update preprocessing
+ ┣ 📜 app.py             # Main entry point & polling configuration
+ ┣ 📜 requirements.txt   # Project dependencies
+ ┗ 📜 .env               # Environment variables (Token)
 ```
 
 ---
@@ -163,7 +169,7 @@ graph TD
 
 ## ⚠️ Important Note
 
-This bot uses a keyword-matching system. To ensure the best performance for your community, regularly update the `handlers/banwords.txt` file with words specific to your moderation needs.
+This bot uses a keyword-matching system. To ensure the best performance for your community, regularly update the `database/banwords.txt` file with words specific to your moderation needs.
 
 ---
 

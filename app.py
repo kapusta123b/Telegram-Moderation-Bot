@@ -1,8 +1,8 @@
 import asyncio
-import os
+from os import environ
 
 from dotenv import load_dotenv
-load_dotenv(".env.prod")  # delete '.prod' if you want use bot token
+load_dotenv(".env")
 
 from database.engine import create_db, session_maker
 from middlewares.db import DbSessionMiddleware
@@ -20,7 +20,7 @@ from aiogram import Bot, Dispatcher, types
 ALLOWED_UPDATES = ["message", "edited_message", "my_chat_member", "chat_member", "callback_query"]
 
 bot = Bot(
-    token=os.environ.get('SECRET_KEY'),  # write your secret token in .env file
+    token=environ.get('SECRET_KEY'),  # write your secret token in .env file
     default=DefaultBotProperties(parse_mode=ParseMode.HTML),
 )
 
