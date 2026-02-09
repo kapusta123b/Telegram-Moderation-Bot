@@ -5,10 +5,10 @@ from asyncio import sleep
 from aiogram import Bot, types, Router, F
 from aiogram.filters import Command, ChatMemberUpdatedFilter, JOIN_TRANSITION
 from aiogram.filters.command import CommandObject
-
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from database.requests import add_warn
+from database.requests import add_warn, set_log_chat, get_log_chat
+
 from filters.group_filters import IsAdmin, CanBeRestricted
 from filters.chat_filters import ChatTypeFilter
 
@@ -16,50 +16,48 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config.config import BAD_WORDS_FILE, permissions_mute, permissions_unmute
+
+
 user_group_router = Router()
 user_group_router.message.filter(ChatTypeFilter(["group", "supergroup"]))
 
-BAD_WORDS_FILE = "database/banwords.txt"
 
 with open(BAD_WORDS_FILE, encoding="utf-8") as f:
     BAD_WORDS = {line.strip().lower() for line in f if line.strip()}
 
-permissions_mute = types.ChatPermissions(
-    can_send_messages=False,
-    can_send_media_messages=False,
-    can_send_polls=False,
-    can_send_other_messages=False,
-    can_add_web_page_previews=False,
-    can_change_info=False,
-    can_invite_users=False,
-    can_pin_messages=False,
-)
+async def send_log(bot: Bot, session: AsyncSession, chat: types.Chat, user: types.User, action: str, duration: str = None, reason: str = None, message: types.Message = None):
+    """
+    Sends a log entry to the admin log channel if configured
+    """
+    log_chat_id = await get_log_chat(session)
+    if not log_chat_id:
+        return
 
-permissions_unmute = types.ChatPermissions(
-    can_send_messages=True,
-    can_send_media_messages=True,
-    can_send_polls=True,
-    can_send_other_messages=True,
-    can_add_web_page_previews=True,
-    can_change_info=False,
-    can_invite_users=True,
-    can_pin_messages=False,
-)
+    duration_text = f"\n⏱ <b>Duration:</b> {duration}" if duration else ""
+    reason_text = f"\n📝 <b>Reason:</b> {reason}" if reason else ""
+    
+    log_text = (
+        f"🛡 <b>Moderation Log</b>\n"
+        f"<b>User:</b> {user.first_name} (ID: {user.id})\n"
+        f"<b>Action:</b> {action}"
+        f"{duration_text}"
+        f"{reason_text}"
+        f"\n<b>Chat:</b> {chat.title}"
+    )
 
-DEFAULT_MUTE_TIME = {
-    1: timedelta(hours=1),
-    2: timedelta(hours=2.5),
-    3: timedelta(hours=4),
-    4: timedelta(hours=24),
-    5: timedelta(days=3)
-}
+    try:
+        if message:
+            await bot.forward_message(chat_id=log_chat_id, from_chat_id=chat.id, message_id=message.message_id)
+        await bot.send_message(chat_id=log_chat_id, text=log_text)
+    except Exception:
+        pass
 
 def normalize(text: str) -> str:
     """
     Removes punctuation and converts text to lowercase for uniform comparison.
     """
     return text.translate(str.maketrans("", "", punctuation)).lower()
-
 
 def contains_bad_word(text: str) -> bool:
     """
@@ -90,8 +88,7 @@ def get_mute_duration(mutes_count: int) -> timedelta:
     multiplier = 1.5 ** extra_mutes
     return timedelta(seconds=base_time * multiplier)
 
-
-async def handle_punishment(message: types.Message, bot: Bot, user: types.User, mutes: int):
+async def handle_punishment(message: types.Message, bot: Bot, user: types.User, mutes: int, session: AsyncSession):
     duration = get_mute_duration(mutes)
     until_date = datetime.now() + duration
 
@@ -105,6 +102,16 @@ async def handle_punishment(message: types.Message, bot: Bot, user: types.User, 
     hours = int(duration.total_seconds() // 3600)
     days = hours // 24
     duration_str = f"{days} days" if days > 0 else f"{hours} hours"
+
+    await send_log(
+        bot=bot,
+        session=session,
+        chat=message.chat,
+        user=user,
+        action="Auto-Mute (3/3 Warnings)",
+        duration=duration_str,
+        message=message
+    )
 
     await message.reply(
         text=f"🚫 <b>Access Restricted:</b> User <b>{user.first_name}</b> has reached the limit of <b>3/3 warnings</b>.\n"
@@ -122,12 +129,20 @@ async def warn_command(message: types.Message, bot: Bot, session: AsyncSession):
         current_warns, mutes = await add_warn(session, target_user.id)
         
         if current_warns < 3:
+            await send_log(
+                bot=bot,
+                session=session,
+                chat=message.chat,
+                user=target_user,
+                action=f"Warning ({current_warns}/3)",
+                message=message.reply_to_message
+            )
             await message.reply(
                 f"🔘 <b>Action:</b> Warning issued to <b>{target_user.first_name}</b>.\n"
                 f"📊 <b>Total Warnings:</b> {current_warns}/3"
             )
         else:
-            await handle_punishment(message.reply_to_message, bot, target_user, mutes)
+            await handle_punishment(message.reply_to_message, bot, target_user, mutes, session)
     else:
         await message.reply("⚠️ <b>Notice:</b> This command must be used in a reply.")
 
@@ -154,7 +169,7 @@ def parse_time(time_str: str) -> datetime | str | None:
         return None
 
 @user_group_router.message(Command("mute"), IsAdmin(), CanBeRestricted())
-async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
+async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot, session: AsyncSession):
     if not message.reply_to_message and not command.args:
         await message.reply(
             "❌ <b>Error:</b> Provide duration or reply to a message (e.g., <code>/mute 10m</code>)."
@@ -197,12 +212,10 @@ async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
         if target.status != 'restricted' or set_arg:
             await bot.restrict_chat_member(**restrict_kwargs) # Unpack arguments and call the restriction method
 
-            description = (
-                '\n<b>Description:</b> ' + ' '.join([word for word in command.args.split(' ')[1:] if word.lower() != 'set'])
-                if len(command.args.split(" ")) >= 2
-                else None
-            )
-
+            reason = ' '.join(
+                [word for word in command.args.split(' ')[1:] if word.lower() != 'set']
+                ) if command.args and len(command.args.split(" ")) >= 2 else None
+            
             duration_text = (
                 "permanently"
                 if until_date == "permanent" # Check if parse_time returned the "permanent" flag
@@ -215,10 +228,21 @@ async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
                 else f"ID: {user_id}"
             )
 
-            status_text = ",mute has been extended" if set_arg else " muted"
+            status_text = "mute extended" if set_arg else "muted"
+
+            await send_log(
+                bot=bot,
+                session=session,
+                chat=message.chat,
+                user=message.reply_to_message.from_user if message.reply_to_message else target.user,
+                action="Mute" if not set_arg else "Mute Extended",
+                duration=duration_text,
+                reason=reason,
+                message=message.reply_to_message if message.reply_to_message else message
+            )
 
             await message.reply(
-                f"🚫 <b>Action:</b> User <b>{name}</b>{status_text} <b>{duration_text}</b>. {description if description else ''}"
+                f"🚫 <b>Action:</b> User <b>{name}</b> {status_text} <b>{duration_text}</b>. {f'\n<b>Description:</b> {reason}' if reason else ''}"
             )
 
         else:
@@ -230,7 +254,7 @@ async def mute_cmd(message: types.Message, command: CommandObject, bot: Bot):
         await message.reply("🚨 <b>System Error:</b> Failed to restrict user.")
 
 @user_group_router.message(Command("unmute"), IsAdmin(), CanBeRestricted())
-async def unmute_cmd(message: types.Message, bot: Bot):
+async def unmute_cmd(message: types.Message, bot: Bot, session: AsyncSession):
     user_id = message.reply_to_message.from_user.id
     target = await bot.get_chat_member(chat_id=message.chat.id, user_id=user_id)
 
@@ -241,6 +265,16 @@ async def unmute_cmd(message: types.Message, bot: Bot):
                 user_id=user_id,
                 permissions=permissions_unmute,
             )
+
+            await send_log(
+                bot=bot,
+                session=session,
+                chat=message.chat,
+                user=message.reply_to_message.from_user,
+                action="Unmute",
+                message=message
+            )
+
             await message.reply(
                 f"✅ <b>Restored:</b> User <b>{message.reply_to_message.from_user.first_name}</b> unmuted."
             )
@@ -249,7 +283,7 @@ async def unmute_cmd(message: types.Message, bot: Bot):
         await message.reply("🚨 <b>System Error:</b> Failed to lift restriction.")
 
 @user_group_router.message(Command("ban"), IsAdmin(), CanBeRestricted())
-async def ban_cmd(message: types.Message, command: CommandObject, bot: Bot):
+async def ban_cmd(message: types.Message, command: CommandObject, bot: Bot, session: AsyncSession):
     if not message.reply_to_message and not command.args:
         await message.reply("❌ <b>Error:</b> Provide duration or reply to a message.")
         return
@@ -287,15 +321,23 @@ async def ban_cmd(message: types.Message, command: CommandObject, bot: Bot):
                 if message.reply_to_message
                 else f"ID: {user_id}"
             )
-            description = (
-                '\n<b>Description:</b> ' + ' '.join([word for word in command.args.split(' ')[1:] if word.lower() != 'set'])
-                if len(command.args.split(" ")) >= 2
-                else None
-            )
+            reason = ' '.join([word for word in command.args.split(' ')[1:] if word.lower() != 'set']) if command.args and len(command.args.split(" ")) >= 2 else None
             
-            status_text = ",ban has been extended" if set_arg else " banned"
+            status_text = "ban extended" if set_arg else "banned"
+
+            await send_log(
+                bot=bot,
+                session=session,
+                chat=message.chat,
+                user=message.reply_to_message.from_user if message.reply_to_message else target.user,
+                action="Ban" if not set_arg else "Ban Extended",
+                duration=duration_text,
+                reason=reason,
+                message=message.reply_to_message if message.reply_to_message else message
+            )
+
             await message.reply(
-                f"🚫 <b>Action:</b> User <b>{name}</b>{status_text} <b>{duration_text}</b>. {description if description else ''}"
+                f"🚫 <b>Action:</b> User <b>{name}</b> {status_text} <b>{duration_text}</b>. {f'\n<b>Description:</b> {reason}' if reason else ''}"
             )
         else:
             await message.reply(
@@ -305,10 +347,64 @@ async def ban_cmd(message: types.Message, command: CommandObject, bot: Bot):
     except Exception:
         await message.reply("🚨 <b>System Error:</b> Failed to ban user.")
 
+@user_group_router.message(Command("unban"), IsAdmin(), CanBeRestricted())
+async def unban_cmd(message: types.Message, command: CommandObject, bot: Bot, session: AsyncSession):
+    if not command.args and not message.reply_to_message:
+        await message.reply("❌ <b>Error:</b> Provide User ID or reply to a message.")
+        return
+
+    try:
+        if message.reply_to_message:
+            user_id = message.reply_to_message.from_user.id
+        else:
+            user_id = int(command.args.split()[0])
+
+        target = await bot.get_chat_member(chat_id=message.chat.id, user_id=user_id)
+
+        if target.status == "kicked":
+            await bot.unban_chat_member(
+                chat_id=message.chat.id, user_id=user_id, only_if_banned=True
+            )
+
+            name = (
+                message.reply_to_message.from_user.first_name
+                if message.reply_to_message
+                else f"ID: {user_id}"
+            )
+
+            await send_log(
+                bot=bot,
+                session=session,
+                chat=message.chat,
+                user=message.reply_to_message.from_user if message.reply_to_message else target.user,
+                action="Unban",
+                message=message
+            )
+
+            await message.reply(f"✅ <b>Restored:</b> User <b>{name}</b> unbanned.")
+        else:
+            await message.reply("ℹ️ <b>Info:</b> User is not banned or is already a member.")
+
+    except ValueError:
+        await message.reply("⚠️ <b>Invalid Format:</b> Use numeric User ID.")
+
+    except Exception:
+        await message.reply("🚨 <b>System Error:</b> Failed to unban user.")
+
 @user_group_router.message(F.new_chat_member | F.left_chat_member)
 async def delete_system_message(message: types.Message):
     await message.delete()
 
+@user_group_router.message(Command('admin_chat'), IsAdmin())
+async def set_admin_chat(message: types.Message, session: AsyncSession):
+    log_chat_id = message.chat.id
+    try:
+        await set_log_chat(session, log_chat_id)
+        await message.reply('✅ <b>Success:</b> This channel has been set as the <b>Admin Log Channel</b>.')
+
+    except ValueError:
+        await message.reply('⚠️ <b>Notice:</b> This channel is already configured for logs.')
+    
 @user_group_router.edited_message
 @user_group_router.message()
 async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
@@ -333,53 +429,32 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
     current_warns, mutes = await add_warn(session, user.id)
 
     if current_warns < 3:
+        await send_log(
+            bot=bot,
+            session=session,
+            chat=message.chat,
+            user=user,
+            action=f"Auto-Warning ({current_warns}/3)",
+            reason=f"Profanity detected: {message.text}",
+            message=message
+        )
         await message.reply(
             f"⚠️ <b>Warning {current_warns}/3:</b> <b>{user.first_name}</b>, please refrain from using prohibited language in this chat.",
         )
+
         await message.delete()
+
         return
     
     else:
         target_message = message.reply_to_message if message.reply_to_message else message
-        await handle_punishment(target_message, bot, user, mutes)
+
+        await handle_punishment(target_message, bot, user, mutes, session)
+
         await message.delete()
 
-@user_group_router.message(Command("unban"), IsAdmin(), CanBeRestricted())
-async def unban_cmd(message: types.Message, command: CommandObject, bot: Bot):
-    if not command.args and not message.reply_to_message:
-        await message.reply("❌ <b>Error:</b> Provide User ID or reply to a message.")
-        return
-
-    try:
-        if message.reply_to_message:
-            user_id = message.reply_to_message.from_user.id
-        else:
-            user_id = int(command.args.split()[0])
-
-        target = await bot.get_chat_member(chat_id=message.chat.id, user_id=user_id)
-
-        if target.status == "kicked":
-            await bot.unban_chat_member(
-                chat_id=message.chat.id, user_id=user_id, only_if_banned=True
-            )
-
-            name = (
-                message.reply_to_message.from_user.first_name
-                if message.reply_to_message
-                else f"ID: {user_id}"
-            )
-            await message.reply(f"✅ <b>Restored:</b> User <b>{name}</b> unbanned.")
-        else:
-            await message.reply("ℹ️ <b>Info:</b> User is not banned or is already a member.")
-
-    except ValueError:
-        await message.reply("⚠️ <b>Invalid Format:</b> Use numeric User ID.")
-
-    except Exception:
-        await message.reply("🚨 <b>System Error:</b> Failed to unban user.")
-
 @user_group_router.chat_member(ChatMemberUpdatedFilter(member_status_changed=JOIN_TRANSITION))
-async def captcha(event: types.ChatMemberUpdated):
+async def captcha(event: types.ChatMemberUpdated, session: AsyncSession):
     user_id = event.new_chat_member.user.id
     
     await event.bot.restrict_chat_member(
@@ -405,6 +480,15 @@ async def captcha(event: types.ChatMemberUpdated):
     )
     
     if current_member.status in ("restricted", "left", "kicked"):
+        await send_log(
+            bot=event.bot,
+            session=session,
+            chat=event.chat,
+            user=event.new_chat_member.user,
+            action="Banned (Captcha Failed)",
+            duration="24 hours"
+        )
+
         await event.bot.send_message(
             chat_id=event.chat.id,
             text=f"❌ <b>{event.new_chat_member.user.first_name}</b> failed verification and has been restricted for 24 hours.")
@@ -416,6 +500,7 @@ async def captcha(event: types.ChatMemberUpdated):
         
         try:
             await captcha_msg.delete()
+
         except Exception:
             pass
 
@@ -436,10 +521,11 @@ async def captcha_unmute(callback: types.CallbackQuery):
         )
 
         await callback.message.delete()
+
     else:
         await callback.answer("⚠️ This verification is not for you!", show_alert=True)
         return
-
+    
 @user_group_router.my_chat_member()
 async def on_bot_added_to_group(event: types.ChatMemberUpdated):
     if event.new_chat_member.status in ("member"):

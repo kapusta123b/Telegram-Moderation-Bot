@@ -10,7 +10,7 @@ from middlewares.db import DbSessionMiddleware
 from handlers.user_group import user_group_router
 from handlers.user_private import user_private_router
 
-from bot_cmd_list import user_private_commands, admin_group_commands
+from config.config import user_private_commands, admin_group_commands
 
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
