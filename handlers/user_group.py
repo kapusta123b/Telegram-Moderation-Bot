@@ -1,5 +1,7 @@
 from string import punctuation
 
+from datetime import datetime, timedelta
+
 from asyncio import sleep
 
 from aiogram import Bot, types, Router, F
@@ -8,15 +10,12 @@ from aiogram.filters.command import CommandObject
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from database.requests import add_warn, set_log_chat, get_log_chat
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from filters.group_filters import IsAdmin, CanBeRestricted
 from filters.chat_filters import ChatTypeFilter
 
-from datetime import datetime, timedelta
-
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from config.config import BAD_WORDS_FILE, permissions_mute, permissions_unmute
+from config.config import BAD_WORDS_FILE, permissions_mute, permissions_unmute, DEFAULT_MUTE_TIME
 
 
 user_group_router = Router()
@@ -34,8 +33,8 @@ async def send_log(bot: Bot, session: AsyncSession, chat: types.Chat, user: type
     if not log_chat_id:
         return
 
-    duration_text = f"\n⏱ <b>Duration:</b> {duration}" if duration else ""
-    reason_text = f"\n📝 <b>Reason:</b> {reason}" if reason else ""
+    duration_text = f"\n<b>Duration:</b> {duration}" if duration else ""
+    reason_text = f"\n<b>Reason:</b> {reason}" if reason else ""
     
     log_text = (
         f"🛡 <b>Moderation Log</b>\n"
@@ -119,7 +118,7 @@ async def handle_punishment(message: types.Message, bot: Bot, user: types.User, 
     )
 
 @user_group_router.message(Command("warn"), IsAdmin())
-async def warn_command(message: types.Message, bot: Bot, session: AsyncSession):
+async def warn_cmd(message: types.Message, bot: Bot, session: AsyncSession):
     """
     Manual warning command for administrators to discipline users.
     """
@@ -391,6 +390,31 @@ async def unban_cmd(message: types.Message, command: CommandObject, bot: Bot, se
     except Exception:
         await message.reply("🚨 <b>System Error:</b> Failed to unban user.")
 
+@user_group_router.message(Command('report'))
+async def report_cmd(message: types.Message, command: CommandObject, bot: Bot, session: AsyncSession):
+    if message.reply_to_message:
+        target_user = message.reply_to_message.from_user
+        reporter = message.from_user
+
+        reason = command.args if command.args else "No reason provided"
+        
+        await send_log(
+            bot=bot,
+            session=session,
+            chat=message.chat,
+            user=target_user,
+            action=f"Reported by {reporter.first_name}",
+            message=message.reply_to_message,
+            reason=reason,
+        )
+
+        await message.reply(
+            "✅ <b>Report Sent:</b> Administrators have been notified of this violation."
+        )
+
+    else:
+        await message.reply("⚠️ <b>Notice:</b> This command must be used in a reply.")
+
 @user_group_router.message(F.new_chat_member | F.left_chat_member)
 async def delete_system_message(message: types.Message):
     await message.delete()
@@ -429,15 +453,6 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
     current_warns, mutes = await add_warn(session, user.id)
 
     if current_warns < 3:
-        await send_log(
-            bot=bot,
-            session=session,
-            chat=message.chat,
-            user=user,
-            action=f"Auto-Warning ({current_warns}/3)",
-            reason=f"Profanity detected: {message.text}",
-            message=message
-        )
         await message.reply(
             f"⚠️ <b>Warning {current_warns}/3:</b> <b>{user.first_name}</b>, please refrain from using prohibited language in this chat.",
         )
