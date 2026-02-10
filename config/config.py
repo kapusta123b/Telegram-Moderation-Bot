@@ -30,7 +30,7 @@ DEFAULT_MUTE_TIME = {
     2: timedelta(hours=2.5),
     3: timedelta(hours=4),
     4: timedelta(hours=24),
-    5: timedelta(days=3)
+    5: timedelta(days=3),
 }
 
 BAD_WORDS_FILE = "database/banwords.txt"
@@ -43,7 +43,10 @@ user_private_commands = [
 ]
 
 admin_group_commands = [
-    BotCommand(command="admin_chat", description="Set the current chat as the Admin Log Channel"),
+    BotCommand(
+        command="admin_chat",
+        description="Set the current chat as the Admin Log Channel",
+    ),
     BotCommand(command="warn", description="Issue a warning (reply required)"),
     BotCommand(command="mute", description="Restrict user (reply or ID required)"),
     BotCommand(command="unmute", description="Lift restriction (reply required)"),

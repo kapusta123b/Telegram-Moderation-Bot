@@ -16,25 +16,18 @@ async def start_cmd(message: types.Message):
         f"Use the buttons below to learn more about my features or how to set me up."
     )
     kb = [
-        [
-            types.KeyboardButton(text="Information about bot...")
-        ],
-        [
-            types.KeyboardButton(text="How use the bot?")
-        ],
-        [
-            types.KeyboardButton(text="View all commands")
-        ],
+        [types.KeyboardButton(text="Information about bot...")],
+        [types.KeyboardButton(text="How use the bot?")],
+        [types.KeyboardButton(text="View all commands")],
     ]
 
     keyboard = types.ReplyKeyboardMarkup(
-        keyboard=kb,
-        resize_keyboard=True, 
-        input_field_placeholder='Select an option'
+        keyboard=kb, resize_keyboard=True, input_field_placeholder="Select an option"
     )
     await message.answer(text, reply_markup=keyboard)
 
-@user_private_router.message(F.text.lower() == 'information about bot...')
+
+@user_private_router.message(F.text.lower() == "information about bot...")
 @user_private_router.message(Command("about"))
 async def about_cmd(message: types.Message):
     text = (
@@ -55,7 +48,8 @@ async def about_cmd(message: types.Message):
     )
     await message.reply(text)
 
-@user_private_router.message(F.text.lower() == 'how use the bot?')
+
+@user_private_router.message(F.text.lower() == "how use the bot?")
 @user_private_router.message(Command("how_use_bot"))
 async def how_to_use_cmd(message: types.Message):
     text = (
@@ -70,7 +64,8 @@ async def how_to_use_cmd(message: types.Message):
     )
     await message.reply(text)
 
-@user_private_router.message(F.text.lower() == 'view all commands')
+
+@user_private_router.message(F.text.lower() == "view all commands")
 @user_private_router.message(Command("help"))
 async def commands_cmd(message: types.Message):
     text = (
