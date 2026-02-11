@@ -12,14 +12,17 @@ async def create_user(session: AsyncSession, user_id):
     if not user:
         new_user = User(id=user_id)
         session.add(new_user)
-
-    await session.commit()
+        await session.commit()
 
 
 async def add_warn(session: AsyncSession, user_id):
     user = await session.get(User, user_id)
 
-    user.count_warns += 1
+    if not user:
+        user = User(id=user_id, count_warns=1)
+        session.add(user)
+    else:
+        user.count_warns += 1
 
     current_warns = user.count_warns
 
@@ -45,6 +48,10 @@ async def add_mute(
     reason: str = None,
 ):
     user = await session.get(User, user_id)
+    if not user:
+        user = User(id=user_id)
+        session.add(user)
+
     user.count_mutes += 1
     user.is_muted = True
 
@@ -72,6 +79,10 @@ async def add_ban(
     reason: str = None,
 ):
     user = await session.get(User, user_id)
+    if not user:
+        user = User(id=user_id)
+        session.add(user)
+
     user.count_bans += 1
     user.is_banned = True
 
@@ -114,5 +125,10 @@ async def get_log_chat(session: AsyncSession):
 
 
 async def get_ban_list(session: AsyncSession):
-    result = await session.execute(select(User).where(User.is_banned == True))
+    result = await session.execute(select(BanHistory))
+    return result.scalars().all()
+
+
+async def get_mute_list(session: AsyncSession):
+    result = await session.execute(select(MuteHistory))
     return result.scalars().all()

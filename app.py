@@ -1,8 +1,8 @@
 import asyncio
+
 from os import environ
 
 from dotenv import load_dotenv
-
 load_dotenv(".env")
 
 from database.engine import create_db, session_maker
@@ -11,23 +11,15 @@ from middlewares.db import DbSessionMiddleware
 from handlers.user_group import user_group_router
 from handlers.user_private import user_private_router
 
-from config.config import user_private_commands, admin_group_commands
+from config.config import user_private_commands, admin_group_commands, ALLOWED_UPDATES
 
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram import Bot, Dispatcher, types
 
 
-ALLOWED_UPDATES = [
-    "message",
-    "edited_message",
-    "my_chat_member",
-    "chat_member",
-    "callback_query",
-]
-
 bot = Bot(
-    token=environ.get("SECRET_KEY"),  # write your secret token in .env file
+    token=environ.get("SECRET_KEY"), # write your secret token in .env file
     default=DefaultBotProperties(parse_mode=ParseMode.HTML),
 )
 

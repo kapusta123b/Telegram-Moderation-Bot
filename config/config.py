@@ -53,3 +53,12 @@ admin_group_commands = [
     BotCommand(command="ban", description="Ban user (reply or ID required)"),
     BotCommand(command="unban", description="Unban user (reply or ID required)"),
 ]
+
+
+ALLOWED_UPDATES = [
+    "message",
+    "edited_message",
+    "my_chat_member",
+    "chat_member",
+    "callback_query",
+]
