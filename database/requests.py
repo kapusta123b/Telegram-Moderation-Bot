@@ -5,6 +5,8 @@ from database.models import BanHistory, MuteHistory, User, ChatConfig
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from loguru import logger
+
 
 async def create_user(session: AsyncSession, user_id):
     user = await session.get(User, user_id)
@@ -13,6 +15,8 @@ async def create_user(session: AsyncSession, user_id):
         new_user = User(id=user_id)
         session.add(new_user)
         await session.commit()
+        logger.info(f"New user {user_id} created in database")
+    
 
 
 async def add_warn(session: AsyncSession, user_id):
@@ -67,6 +71,7 @@ async def add_mute(
     session.add(new_record)
 
     await session.commit()
+    logger.success(f"Mute record added for user {user_id}")
 
 
 async def add_ban(
@@ -98,6 +103,7 @@ async def add_ban(
     session.add(new_record)
 
     await session.commit()
+    logger.success(f"Ban record added for user {user_id}")
 
 
 async def set_log_chat(session: AsyncSession, log_chat_id):
@@ -114,6 +120,7 @@ async def set_log_chat(session: AsyncSession, log_chat_id):
         log_chat.chat_id = log_chat_id
 
     await session.commit()
+    logger.success('Chat for logs has been successfully installed!')
 
 
 async def get_log_chat(session: AsyncSession):

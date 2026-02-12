@@ -1,6 +1,7 @@
 from aiogram import types, Router, F
 from aiogram.filters import CommandStart, Command
 from filters.chat_filters import ChatTypeFilter
+from loguru import logger
 
 user_private_router = Router()
 user_private_router.message.filter(ChatTypeFilter(["private"]))
@@ -8,6 +9,8 @@ user_private_router.message.filter(ChatTypeFilter(["private"]))
 
 @user_private_router.message(CommandStart())
 async def start_cmd(message: types.Message):
+    logger.info(f"User {message.from_user.id} started bot in private")
+    
     text = (
         f"Greetings, <b>{message.from_user.full_name}</b>. I am a specialized moderation bot "
         f"dedicated to keeping your Telegram communities clean and respectful. 🛡️\n\n"

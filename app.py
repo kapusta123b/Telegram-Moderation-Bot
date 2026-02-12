@@ -5,6 +5,7 @@ from os import environ
 from dotenv import load_dotenv
 load_dotenv(".env")
 
+from config.logging_config import setup_logging
 from database.engine import create_db, session_maker
 from middlewares.db import DbSessionMiddleware
 
@@ -17,6 +18,9 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram import Bot, Dispatcher, types
 
+from loguru import logger
+
+setup_logging()
 
 bot = Bot(
     token=environ.get("SECRET_KEY"), # write your secret token in .env file
@@ -26,7 +30,6 @@ bot = Bot(
 dp = Dispatcher()
 dp.include_router(user_private_router)
 dp.include_router(user_group_router)
-
 
 async def main():
     await create_db()
@@ -42,7 +45,7 @@ async def main():
         scope=types.BotCommandScopeAllChatAdministrators(),
     )
 
+    logger.success('Bot successfully started and polling...')
     await dp.start_polling(bot, allowed_updates=ALLOWED_UPDATES)
-
 
 asyncio.run(main())
