@@ -52,6 +52,9 @@ admin_group_commands = [
     BotCommand(command="unmute", description="Lift restriction (reply required)"),
     BotCommand(command="ban", description="Ban user (reply or ID required)"),
     BotCommand(command="unban", description="Unban user (reply or ID required)"),
+    BotCommand(command="report", description="Report a violation to admins (reply required)"),
+    BotCommand(command="mute_list", description="View history of mutes"),
+    BotCommand(command="ban_list", description="View history of bans"),
 ]
 
 

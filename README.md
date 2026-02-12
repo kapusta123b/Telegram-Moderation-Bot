@@ -30,6 +30,7 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
   <img src="https://img.shields.io/badge/Aiogram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" />
   <img src="https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white" />
   <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" />
+  <img src="https://img.shields.io/badge/Loguru-3776AB?style=for-the-badge&logo=python&logoColor=white" />
 </p>
 
 ---
@@ -38,7 +39,8 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 
 - **🛡️ Join Captcha**: Automated anti-bot verification for new members with a 5-minute timeout and 24-hour ban for failures.
 - **🚀 Automated Moderation**: Real-time scanning of messages and edits for prohibited keywords.
-- **📜 Moderation Logs**: Dedicated logging system to track all administrative actions in a chosen channel.
+- **📜 Moderation Logs**: Dedicated logging system to track all administrative actions. Automatically **forwards violating messages** to the chosen channel as evidence.
+- **🔍 Advanced Logging**: Comprehensive project-wide logging using **Loguru** (Console + File) for monitoring bot health and debugging.
 - **🧹 System Cleanup**: Automatically removes "user joined" and "user left" system messages for a cleaner chat.
 - **💾 Persistent Storage**: SQLite database powered by **SQLAlchemy 2.0** to track violation history.
 - **⚠️ Smart Warning System**: Automatically issues warnings to violators (3/3 warnings lead to auto-mute).
@@ -63,6 +65,11 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 - `/unmute` — Restore message permissions (Reply required).
 - `/ban [duration/ID] [set]` — Ban a user from the group (Reply or User ID).
 - `/unban [ID]` — Lift a ban (Reply or User ID).
+- `/mute_list [count]` — View history of mutes.
+- `/ban_list [count]` — View history of bans.
+
+### 🛡️ Public Group Commands
+- `/report` — Report a message to administrators (Reply required).
 
 > **💡 Time Formats:** `10m`, `1h`, `1d`, `1w`, or `permanent`.
 
@@ -78,6 +85,7 @@ graph TD
 
     subgraph Config[Central Configuration]
         CFG[config/config.py]
+        LOG[config/logging_config.py]
     end
 
     subgraph Logic[Request Processing]
@@ -97,6 +105,7 @@ graph TD
     end
 
     A --> CFG
+    A --> LOG
     A --> F
     F --> B
     B --> C
@@ -122,7 +131,10 @@ graph TD
 
 ```text
 📦 Telegram-Moderation-Bot
- ┣ 📂 config             # Permissions, commands, and timing settings
+ ┣ 📂 config             # Permissions, timing settings, and Loguru config
+ ┃ ┣ 📜 config.py        # Central configuration
+ ┃ ┣ 📜 logging_config.py # Loguru setup and interception
+ ┃ ┗ 📜 logs.log         # Persistent application logs
  ┣ 📂 database           # SQLAlchemy 2.0 models & async requests
  ┣ 📂 filters            # Custom logic for Admin & Chat-type validation
  ┣ 📂 handlers           # Core logic: Profanity filter, Captcha, Admin tools

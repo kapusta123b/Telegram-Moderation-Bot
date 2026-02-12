@@ -864,5 +864,6 @@ async def on_bot_added_to_group(event: types.ChatMemberUpdated):
             "To function properly, I need administrator rights:\n"
             "1. Open Group Settings > <b>Administrators</b>\n"
             "2. Add me as an admin\n"
-            "3. Enable <b>Delete Messages</b> and <b>Ban Users</b> permissions",
+            "3. Enable <b>Delete Messages</b> and <b>Ban Users</b> permissions\n\n"
+            "Use /help in private to see all my features!",
         )
