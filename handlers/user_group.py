@@ -9,6 +9,7 @@ from aiogram.filters import Command, ChatMemberUpdatedFilter, JOIN_TRANSITION
 from aiogram.filters.command import CommandObject
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+import config.strings as s
 from database.requests import (
     add_ban,
     add_mute,
@@ -68,8 +69,8 @@ def contains_bad_word(text: str) -> bool:
 def get_mute_duration(mutes_count: int) -> timedelta:
     """
     Calculates the duration of a mute based on the user's violation history.
-    Uses predefined steps for the first 5 mutes, then scales by 1.5x.
     """
+    
     if mutes_count <= 5:
         return DEFAULT_MUTE_TIME.get(mutes_count, timedelta(hours=1))
 
@@ -130,16 +131,23 @@ async def send_log(
     if not log_chat_id:
         return
 
-    duration_text = f"\n<b>Duration:</b> {duration}" if duration else ""
-    reason_text = f"\n<b>Reason:</b> {reason}" if reason else ""
+    duration_text = (
+        s.DURATION_TEXT.format(duration=duration)
+        if duration else ""
+    )
 
-    log_text = (
-        f"🛡 <b>Moderation Log</b>\n"
-        f"<b>User:</b> {user.first_name} (ID: {user.id})\n"
-        f"<b>Action:</b> {action}"
-        f"{duration_text}"
-        f"{reason_text}"
-        f"\n<b>Chat:</b> {chat.title}"
+    reason_text = (
+        s.REASON_LOG_TEXT.format(reason=reason)
+        if reason else ""
+    )
+
+    log_text = s.MODERATION_LOG.format(
+        first_name=user.first_name,
+        user_id=user.id,
+        action=action,
+        duration_block=duration_text,
+        reason_block=reason_text,
+        chat_title=chat.title,
     )
 
     try:
@@ -191,8 +199,12 @@ async def handle_punishment(
     )
 
     await message.reply(
-        text=f"🚫 <b>Access Restricted:</b> User <b>{user.first_name}</b> has reached the limit of <b>3/3 warnings</b>.\n"
-        f"<i>A {duration_str} restriction has been applied (Mute #{mutes}).</i>",
+        text=s.ACCESS_RESTRICTED.format(
+        first_name=user.first_name,
+        warnings=3,
+        duration=duration_str,
+        mute_count=mutes
+        )
     )
 
 
@@ -216,16 +228,21 @@ async def warn_cmd(message: types.Message, bot: Bot, session: AsyncSession):
                 action=f"Warning ({current_warns}/3)",
                 message=message.reply_to_message,
             )
+
             await message.reply(
-                f"🔘 <b>Action:</b> Warning issued to <b>{target_user.first_name}</b>.\n"
-                f"📊 <b>Total Warnings:</b> {current_warns}/3"
+                text=s.ACTION_WARN_TO.format(
+                    first_name=target_user.first_name,
+                    current_warns=current_warns
+                )
             )
+
         else:
             await handle_punishment(
                 message.reply_to_message, bot, target_user, mutes, session
             )
+
     else:
-        await message.reply("⚠️ <b>Notice:</b> This command must be used in a reply.")
+        await message.reply(s.NOTICE_REPLY)
 
 
 @user_group_router.message(Command("mute"), IsAdmin(), CanBeRestricted())
@@ -238,7 +255,7 @@ async def mute_cmd(
 
     if not message.reply_to_message and not command.args:
         await message.reply(
-            "❌ <b>Error:</b> Provide duration or reply to a message (e.g., <code>/mute 10m</code>)."
+            s.NOT_REPLY_TO_MESSAGE
         )
         return
 
@@ -269,7 +286,10 @@ async def mute_cmd(
     set_arg = True if "set" in command.args.split() else None
 
     if until_date is None:
-        await message.reply("⚠️ <b>Invalid Format:</b> Use 10m, 1h, 1d or permanent.")
+        await message.reply(
+            s.INVALID_FORMAT
+            )
+        
         return
 
     try:
@@ -347,19 +367,29 @@ async def mute_cmd(
                 duration=duration_text,
                 reason=reason,
                 status=status_text,
+            )  
+
+            reason_block = (
+                s.REASON_BLOCK.format(reason=reason)
+                if reason else ""
             )
 
             await message.reply(
-                f"🚫 <b>Action:</b> User <b>{name}</b> {status_text} <b>{duration_text}</b>. {f'\n<b>Description:</b> {reason}' if reason else ''}"
+                text=s.ACTION_USER.format(
+                    name=name,
+                    status_text=status_text,
+                    duration_text=duration_text,
+                    reason=reason_block
+                )
             )
 
         else:
             await message.reply(
-                "⚠️ <b>Notice:</b> This user is already muted. Use the <code>set</code> argument to update the duration (e.g., <code>/mute 10m set</code>)."
+                text=s.ALREADY_MUTED
             )
 
     except Exception:
-        await message.reply("🚨 <b>System Error:</b> Failed to restrict user.")
+        await message.reply(s.SYSTEM_ERROR_MUTE)
         logger.exception('Failed to mute user')
 
 
@@ -388,13 +418,14 @@ async def unmute_cmd(message: types.Message, bot: Bot, session: AsyncSession):
             )
 
             await message.reply(
-                f"✅ <b>Restored:</b> User <b>{message.reply_to_message.from_user.first_name}</b> unmuted."
+                text=s.RESTORED_USER_UNMUTE.format(
+                    first_name=message.reply_to_message.from_user.first_name
+                )
             )
 
     except Exception:
-        await message.reply("🚨 <b>System Error:</b> Failed to lift restriction.")
+        await message.reply(s.SYSTEM_ERROR_UNMUTE)
         logger.exception(f"Failed to unmute user {user_id} in chat {message.chat.id}")
-
 
 
 @user_group_router.message(Command("ban"), IsAdmin(), CanBeRestricted())
@@ -406,7 +437,7 @@ async def ban_cmd(
     """
 
     if not message.reply_to_message and not command.args:
-        await message.reply("❌ <b>Error:</b> Provide duration or reply to a message.")
+        await message.reply(s.NOT_REPLY_TO_MESSAGE)
         return
 
     user_id = (
@@ -491,6 +522,11 @@ async def ban_cmd(
                 ),
             )
 
+            reason_block = (
+                s.REASON_BLOCK.format(reason=reason)
+                if reason else ""
+            )
+
             await add_ban(
                 session=session,
                 user_id=user_id,
@@ -502,17 +538,21 @@ async def ban_cmd(
             )
 
             await message.reply(
-                f"🚫 <b>Action:</b> User <b>{name}</b> {status_text} <b>{duration_text}</b>. {f'\n<b>Description:</b> {reason}' if reason else ''}"
+                text=s.ACTION_USER.format(
+                    name=name,
+                    status_text=status_text,
+                    duration_text=duration_text,
+                    reason=reason_block
+                )
             )
         else:
             await message.reply(
-                "⚠️ <b>Notice:</b> This user is already banned. Use the <code>set</code> argument to update the duration (e.g., <code>/ban 10m set</code>)."
+                s.ALREADY_BANNED
             )
 
     except Exception:
-        await message.reply("🚨 <b>System Error:</b> Failed to ban user.")
+        await message.reply(s.SYSTEM_ERROR_BAN)
         logger.exception(f"Failed to ban user {user_id} in chat {message.chat.id}")
-
 
 
 @user_group_router.message(Command("unban"), IsAdmin(), CanBeRestricted())
@@ -524,7 +564,7 @@ async def unban_cmd(
     """
 
     if not command.args and not message.reply_to_message:
-        await message.reply("❌ <b>Error:</b> Provide User ID or reply to a message.")
+        await message.reply(s.NOT_REPLY_TO_MESSAGE)
         return
 
     try:
@@ -562,22 +602,24 @@ async def unban_cmd(
                 message=message,
             )
 
-            await message.reply(f"✅ <b>Restored:</b> User <b>{name}</b> unbanned.")
+            await message.reply(text=s.RESTORED_USER_BAN.format(
+                name=name  
+                )
+            )
+
 
         else:
             await message.reply(
-                "ℹ️ <b>Info:</b> User is not banned or is already a member."
+                s.USER_IS_NOT_BANNED
             )
 
     except ValueError:
-        await message.reply("⚠️ <b>Invalid Format:</b> Use numeric User ID.")
+        await message.reply(s.VALUE_UNBAN_ERROR)
         logger.warning(f"Invalid User ID provided for unban in chat {message.chat.id}")
 
-
     except Exception:
-        await message.reply("🚨 <b>System Error:</b> Failed to unban user.")
+        await message.reply(s.SYSTEM_ERROR_UNBAN)
         logger.exception(f"Failed to unban user {user_id} in chat {message.chat.id}")
-
 
 
 @user_group_router.message(Command("report"))
@@ -606,11 +648,11 @@ async def report_cmd(
         )
 
         await message.reply(
-            "✅ <b>Report Sent:</b> Administrators have been notified of this violation."
+            s.REPORT_SENT
         )
 
     else:
-        await message.reply("⚠️ <b>Notice:</b> This command must be used in a reply.")
+        await message.reply(s.REPORT_NO_REPLY)
 
 
 @user_group_router.message(Command("ban_list"), IsAdmin())
@@ -623,23 +665,31 @@ async def ban_list_cmd(message: types.Message, command: CommandObject, session: 
     bans = await get_ban_list(session)
 
     if not bans:
-        await message.reply("📋 <b>Ban History:</b> No records found.")
+        await message.reply(s.BAN_NO_RECORDS)
         return
     
     # if arguments are passed, it takes the first argument (the number of users to be displayed), otherwise 0
     number_of_users = int(command.args.split()[0]) if command.args else 0
 
-    text = f"🚫 <b>Ban History ({str(number_of_users) + ' <b>Users</b>' if number_of_users else 'Full history'}):</b>\n\n"
+    history_scope = (
+        f"{number_of_users} <b>Users</b>"
+        if number_of_users
+        else "Full history"
+    )
+
+    text = s.BAN_HISTORY_HEADER.format(history_scope=history_scope)
 
     for ban in bans[-number_of_users:]: # the number of users is taken depending on the number in number_of_users
         date_str = ban.time.strftime("%Y-%m-%d %H:%M") # formatting into a convenient form
-        
-        text += (
-            f"👤 <b>User:</b> {ban.name} (ID: {ban.user_id})\n"
-            f"📅 <b>Date:</b> {date_str}\n"
-            f"⏳ <b>Duration:</b> {ban.duration}\n"
-            f"📝 <b>Reason:</b> {ban.reason if ban.reason else 'None'}\n"
-            f"-------------------\n"
+
+        reason_text = ban.reason if ban.reason else "None"
+
+        text += s.LIST_RECORD.format(
+            name=ban.name,
+            user_id=ban.user_id,
+            date=date_str,
+            duration=ban.duration,
+            reason=reason_text,
         )
 
     await message.reply(text)
@@ -655,23 +705,31 @@ async def mute_list_cmd(message: types.Message, session: AsyncSession, command: 
     mutes = await get_mute_list(session)
 
     if not mutes:
-        await message.reply("📋 <b>Mute History:</b> No records found.")
+        await message.reply(s.MUTE_NO_RECORDS)
         return
 
     # if arguments are passed, it takes the first argument (the number of users to be displayed), otherwise 0
     number_of_users = int(command.args.split()[0]) if command.args else 0
     
-    text = f"🔇 <b>Mute History ({str(number_of_users) + ' <b>Users</b>' if number_of_users else 'Full history'}):</b>\n\n"
+    history_scope = (
+        f"{number_of_users} <b>Users</b>"
+        if number_of_users
+        else "Full history"
+    )
+
+    text = s.MUTE_HISTORY_HEADER.format(history_scope=history_scope)
 
     for mute in mutes[-number_of_users:]: # the number of users is taken depending on the number in number_of_users
         date_str = mute.time.strftime("%Y-%m-%d %H:%M") # formatting into a convenient form
         
-        text += (
-            f"👤 <b>User:</b> {mute.name} (ID: {mute.user_id})\n"
-            f"📅 <b>Date:</b> {date_str}\n"
-            f"⏳ <b>Duration:</b> {mute.duration}\n"
-            f"📝 <b>Reason:</b> {mute.reason if mute.reason else 'None'}\n"
-            f"-------------------\n"
+        reason_text = mute.reason if mute.reason else "None"
+
+        text += s.LIST_RECORD.format(
+            name=mute.name,
+            user_id=mute.user_id,
+            date=date_str,
+            duration=mute.duration,
+            reason=reason_text,
         )
 
     await message.reply(text)
@@ -711,12 +769,12 @@ async def set_admin_chat(message: types.Message, session: AsyncSession):
         await set_log_chat(session, log_chat_id)
 
         await message.reply(
-            "✅ <b>Success:</b> This channel has been set as the <b>Admin Log Channel</b>."
+            s.SUCCESS_SET_CHAT
         )
 
     except ValueError:
         await message.reply(
-            "⚠️ <b>Notice:</b> This channel is already configured for logs."
+            s.ALREADY_CONFIGURED
         )
         logger.info(f"Admin chat already configured for chat {message.chat.id}")
 
@@ -742,8 +800,9 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
 
     if member.status in ("creator", "administrator"):
         await message.reply(
-            "⚠️ <b>Admin Notice:</b> Please maintain professional language."
+            s.ADMIN_NOTICE
         )
+
         return
 
     current_warns, mutes = await add_warn(session, user.id)
@@ -751,7 +810,10 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
     if current_warns < 3:
         logger.info(f"Message from {user.id} in chat {message.chat.id} deleted (bad word). Warnings: {current_warns}/3")
         await message.reply(
-            f"⚠️ <b>Warning {current_warns}/3:</b> <b>{user.first_name}</b>, please refrain from using prohibited language in this chat.",
+            text=s.SENT_AUTO_WARN.format(
+                current_warns=current_warns,
+                first_name=user.first_name
+            ),
         )
 
         await message.delete()
@@ -786,7 +848,7 @@ async def captcha(event: types.ChatMemberUpdated, session: AsyncSession):
 
     captcha_msg = await event.bot.send_message(
         chat_id=event.chat.id,
-        text=f"🤖 <b>Verification:</b> Hello <b>{event.new_chat_member.user.first_name}</b>, please confirm that you are not a robot to join the conversation!",
+        text=s.VERIFICATION_TEXT.format(first_name=event.new_chat_member.user.first_name),
         reply_markup=builder.as_markup(),
     )
 
@@ -811,7 +873,7 @@ async def captcha(event: types.ChatMemberUpdated, session: AsyncSession):
 
         await event.bot.send_message(
             chat_id=event.chat.id,
-            text=f"❌ <b>{event.new_chat_member.user.first_name}</b> failed verification and has been restricted for 24 hours.",
+            text=s.VERIFICATION_FAILED.format(first_name=event.new_chat_member.user.first_name),
         )
 
         await event.bot.ban_chat_member(
@@ -827,7 +889,6 @@ async def captcha(event: types.ChatMemberUpdated, session: AsyncSession):
             logger.debug(f"Could not delete captcha message in chat {event.chat.id}")
 
 
-
 @user_group_router.callback_query(F.data.startswith("not_bot:"))
 async def captcha_unmute(callback: types.CallbackQuery):
     target_user_id = int(callback.data.split(":")[1])
@@ -841,13 +902,13 @@ async def captcha_unmute(callback: types.CallbackQuery):
         )
 
         await callback.answer(
-            text="✅ Verified! Thank you, you can now send messages.", show_alert=True
+            text=s.VERIFICATION_SUCCES, show_alert=True
         )
 
         await callback.message.delete()
 
     else:
-        await callback.answer("⚠️ This verification is not for you!", show_alert=True)
+        await callback.answer(s.VERIFICATION_NOT_FOR_YOU, show_alert=True)
         return
 
 
@@ -857,13 +918,5 @@ async def on_bot_added_to_group(event: types.ChatMemberUpdated):
         logger.info(f"Bot added to chat {event.chat.id} ({event.chat.title})")
         await event.bot.send_message(
             chat_id=event.chat.id,
-            text="🛡 <b>Profanity Filter Bot</b>\n\n"
-            "I will automatically monitor this chat for prohibited language. "
-            "Users receive warnings, and after <b>3/3</b> warnings, they are restricted for 1 hour.\n\n"
-            "<b>Setup:</b>\n"
-            "To function properly, I need administrator rights:\n"
-            "1. Open Group Settings > <b>Administrators</b>\n"
-            "2. Add me as an admin\n"
-            "3. Enable <b>Delete Messages</b> and <b>Ban Users</b> permissions\n\n"
-            "Use /help in private to see all my features!",
+            text=s.WELCOME_TEXT_GROUP
         )
