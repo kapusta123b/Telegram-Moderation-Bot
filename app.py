@@ -11,6 +11,11 @@ from middlewares.db import DbSessionMiddleware
 
 from handlers.user_group import user_group_router
 from handlers.user_private import user_private_router
+from handlers.moderation import moderation_router
+from handlers.reports import reports_router
+from handlers.lists import lists_router
+from handlers.captcha import captcha_router
+from handlers.system import system_router
 
 from config.config import user_private_commands, admin_group_commands, ALLOWED_UPDATES
 
@@ -28,8 +33,15 @@ bot = Bot(
 )
 
 dp = Dispatcher()
-dp.include_router(user_private_router)
-dp.include_router(user_group_router)
+dp.include_routers(
+    user_private_router,
+    user_group_router,
+    moderation_router,
+    reports_router,
+    lists_router,
+    captcha_router,
+    system_router,
+)
 
 async def main():
     await create_db()
