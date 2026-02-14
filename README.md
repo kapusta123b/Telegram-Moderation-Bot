@@ -38,15 +38,15 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 ## ✨ Key Features
 
 - **🛡️ Join Captcha**: Automated anti-bot verification for new members with a 5-minute timeout and 24-hour ban for failures.
-- **🚀 Automated Moderation**: Real-time scanning of messages and edits for prohibited keywords.
+- **🚀 Automated Moderation**: Modular routers for real-time scanning of messages and edits for prohibited keywords.
 - **📜 Moderation Logs**: Dedicated logging system to track all administrative actions. Automatically **forwards violating messages** to the chosen channel as evidence.
-- **🔍 Advanced Logging**: Comprehensive project-wide logging using **Loguru** (Console + File) for monitoring bot health and debugging.
+- **🔧 Modular Architecture**: Decoupled handlers for captcha, lists, moderation, reports, and system tasks for better maintainability.
+- **⚙️ Centralized Services**: Specialized logic layers for restrictions, history management, and automated warnings.
 - **🧹 System Cleanup**: Automatically removes "user joined" and "user left" system messages for a cleaner chat.
-- **💾 Persistent Storage**: SQLite database powered by **SQLAlchemy 2.0** to track violation history.
+- **💾 Persistent Storage**: SQLite database powered by **SQLAlchemy 2.0** to track violation history and bot configuration.
 - **⚠️ Smart Warning System**: Automatically issues warnings to violators (3/3 warnings lead to auto-mute).
 - **📈 Progressive Mutes**: Intelligent restriction system that scales based on history (1h -> 2.5h -> 4h -> 24h -> 3d -> 1.5x scaling).
-- **🛠️ Admin Toolkit**: Manual `/warn`, `/mute`, and `/ban` commands with custom durations and reasons.
-- **🛡️ Admin Immunity**: Full recognition and protection for group administrators.
+- **🛠️ Admin Toolkit**: Manual `/warn`, `/mute`, and `/ban` commands with custom durations, reasons, and ID support.
 
 ---
 
@@ -65,8 +65,8 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 - `/unmute` — Restore message permissions (Reply required).
 - `/ban [duration/ID] [set]` — Ban a user from the group (Reply or User ID).
 - `/unban [ID]` — Lift a ban (Reply or User ID).
-- `/mute_list [count]` — View history of mutes.
-- `/ban_list [count]` — View history of bans.
+- `/mute_list` — View history of mutes (Paginated).
+- `/ban_list` — View history of bans (Paginated).
 
 ### 🛡️ Public Group Commands
 - `/report` — Report a message to administrators (Reply required).
@@ -85,63 +85,60 @@ graph TD
 
     subgraph Config[Central Configuration]
         CFG[config/config.py]
-        LOG[config/logging_config.py]
+        STR[config/strings.py]
+        LOG_CFG[config/logging_config.py]
     end
 
-    subgraph Logic[Request Processing]
-        B(handlers/)
-        C(filters/)
-        F(middlewares/)
-        B1[user_group.py]
-        B2[user_private.py]
+    subgraph Handlers[Modular Handlers]
+        H_MOD[moderation.py]
+        H_CAP[captcha.py]
+        H_LST[lists.py]
+        H_REP[reports.py]
+        H_SYS[system.py]
+        H_PRIV[user_private.py]
     end
 
-    subgraph Data[Persistence & Assets]
-        E(database/)
-        D[(banwords.txt)]
-        E1[engine.py]
-        E2[models.py]
-        E3[requests.py]
+    subgraph Services[Business Logic]
+        S_REST[restriction_service.py]
+        S_HIST[history_service.py]
+        S_LOG[log_service.py]
+        S_CAP[captcha_service.py]
     end
 
-    A --> CFG
-    A --> LOG
-    A --> F
-    F --> B
-    B --> C
-    B --> E
-    B --> D
+    subgraph Data[Persistence & Utils]
+        DB[(database/)]
+        UTL(utils/)
+        FLT(filters/)
+    end
+
+    A --> Config
+    A --> Handlers
+    Handlers --> Services
+    Services --> Data
+    Handlers --> Data
     
-    B1 --- B
-    B2 --- B
-    
-    E1 --- E
-    E2 --- E
-    E3 --- E
-    
-    %% Dark Professional Theme
+    %% Styling
     style Core fill:#1a1a1a,stroke:#444,stroke-width:2px,color:#fff
     style Config fill:#3d3d3d,stroke:#666,stroke-width:2px,color:#fff
-    style Data fill:#2d2d2d,stroke:#555,stroke-width:2px,color:#fff
-    style Logic fill:#252525,stroke:#444,stroke-width:1px,color:#ccc
-    style D fill:#333,stroke:#ffd700,stroke-width:2px,color:#ffd700
+    style Handlers fill:#252525,stroke:#444,stroke-width:1px,color:#ccc
+    style Services fill:#2d2d2d,stroke:#555,stroke-width:2px,color:#fff
+    style Data fill:#333,stroke:#ffd700,stroke-width:2px,color:#ffd700
 ```
 
 ## 📂 File Structure
 
 ```text
 📦 Telegram-Moderation-Bot
- ┣ 📂 config             # Permissions, timing settings, and Loguru config
- ┃ ┣ 📜 config.py        # Central configuration
- ┃ ┣ 📜 logging_config.py # Loguru setup and interception
- ┃ ┗ 📜 logs.log         # Persistent application logs
- ┣ 📂 database           # SQLAlchemy 2.0 models & async requests
- ┣ 📂 filters            # Custom logic for Admin & Chat-type validation
- ┣ 📂 handlers           # Core logic: Profanity filter, Captcha, Admin tools
- ┣ 📂 middlewares        # DB session injection & update preprocessing
- ┣ 📜 app.py             # Main entry point & polling configuration
+ ┣ 📂 config             # Configuration, strings, and logging setup
+ ┣ 📂 database           # SQLAlchemy models, async requests, and banwords
+ ┣ 📂 filters            # Admin validation and chat-type filters
+ ┣ 📂 handlers           # Modular routers (Moderation, Captcha, Lists, etc.)
+ ┣ 📂 middlewares        # DB session injection middleware
+ ┣ 📂 services           # Core business logic (Restrictions, History, Logs)
+ ┣ 📂 utils              # Helper functions (Time parsing, Text normalization)
+ ┣ 📜 app.py             # Main entry point & dispatcher configuration
  ┣ 📜 requirements.txt   # Project dependencies
- ┗ 📜 .env               # Environment variables (Token)
+ ┗ 📜 .env               # Environment variables
 ```
 
 ---
