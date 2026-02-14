@@ -1,6 +1,9 @@
 from string import punctuation
 
-from handlers.user_group import BAD_WORDS
+from config.config import BAD_WORDS_FILE
+
+with open(BAD_WORDS_FILE, encoding="utf-8") as f:
+    BAD_WORDS = {line.strip().lower() for line in f if line.strip()}
 
 
 def normalize(text: str) -> str:

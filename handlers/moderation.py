@@ -5,9 +5,6 @@ from aiogram.filters.command import CommandObject
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import config.strings as s
-from config.config import (
-    BAD_WORDS_FILE,
-)
 
 from filters.group_filters import IsAdmin
 from filters.chat_filters import ChatTypeFilter
@@ -25,9 +22,6 @@ from utils.text import contains_bad_word
 
 moderation_router = Router()
 moderation_router.message.filter(ChatTypeFilter(["group", "supergroup"]))
-
-with open(BAD_WORDS_FILE, encoding="utf-8") as f:
-    BAD_WORDS = {line.strip().lower() for line in f if line.strip()}
 
 
 @moderation_router.message(Command("warn"), IsAdmin())
@@ -130,16 +124,16 @@ async def restriction_cmd(
     
     try:
         if action == "mute":
-            result = await service.mute(message.chat.id, target_user, until_date, reason, extend, message)
+            result = await service.mute(message.chat.id, target_user, until_date, reason, extend, message.reply_to_message)
         
         elif action == "ban":
-            result = await service.ban(message.chat.id, target_user, until_date, reason, extend, message)
+            result = await service.ban(message.chat.id, target_user, until_date, reason, extend, message.reply_to_message)
         
         elif action == "unmute":
-            result = await service.unmute(message.chat.id, target_user, message)
+            result = await service.unmute(message.chat.id, target_user, message.reply_to_message)
         
         elif action == "unban":
-            result = await service.unban(message.chat.id, target_user, message)
+            result = await service.unban(message.chat.id, target_user, message.reply_to_message)
             
     except AlreadyRestrictedError:
         await message.reply(s.ALREADY_MUTED)

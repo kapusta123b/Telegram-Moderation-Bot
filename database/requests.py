@@ -21,17 +21,20 @@ async def create_user(session: AsyncSession, user_id):
 
 async def add_warn(session: AsyncSession, user_id):
     user = await session.get(User, user_id)
+    if not user:
+        user = User(id=user_id)
+        session.add(user)
 
-    user.count_warns += 1
+    user.count_warns = (user.count_warns or 0) + 1
 
     current_warns = user.count_warns
 
     if user.count_warns >= 3:
         user.count_warns = 0
-        user.count_mutes += 1
+        user.count_mutes = (user.count_mutes or 0) + 1
         user.is_muted = True
 
-    mutes = user.count_mutes
+    mutes = user.count_mutes or 0
 
     await session.commit()
 
@@ -52,7 +55,7 @@ async def add_mute(
         user = User(id=user_id)
         session.add(user)
 
-    user.count_mutes += 1
+    user.count_mutes = (user.count_mutes or 0) + 1
     user.is_muted = True
 
     new_record = MuteHistory(
@@ -84,7 +87,7 @@ async def add_ban(
         user = User(id=user_id)
         session.add(user)
 
-    user.count_bans += 1
+    user.count_bans = (user.count_bans or 0) + 1
     user.is_banned = True
 
     new_record = BanHistory(

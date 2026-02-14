@@ -9,7 +9,6 @@ from config.logging_config import setup_logging
 from database.engine import create_db, session_maker
 from middlewares.db import DbSessionMiddleware
 
-from handlers.user_group import user_group_router
 from handlers.user_private import user_private_router
 from handlers.moderation import moderation_router
 from handlers.reports import reports_router
@@ -34,13 +33,12 @@ bot = Bot(
 
 dp = Dispatcher()
 dp.include_routers(
+    system_router,
     user_private_router,
-    user_group_router,
-    moderation_router,
     reports_router,
     lists_router,
+    moderation_router,
     captcha_router,
-    system_router,
 )
 
 async def main():

@@ -1,3 +1,4 @@
+from html import escape
 from aiogram import types, Bot
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +12,7 @@ from loguru import logger
 async def send_log(
     bot: Bot,
     session: AsyncSession,
-    chat: types.Chat,
+    chat: types.Chat | int,
     user: types.User,
     action: str,
     duration: str = None,
@@ -25,29 +26,41 @@ async def send_log(
     if not log_chat_id:
         return
 
+    if isinstance(chat, int):
+        try:
+            chat_obj = await bot.get_chat(chat)
+            chat_title = chat_obj.title
+            chat_id = chat
+        except Exception:
+            chat_title = f"ID: {chat}"
+            chat_id = chat
+    else:
+        chat_title = chat.title
+        chat_id = chat.id
+
     duration_text = (
-        s.DURATION_TEXT.format(duration=duration)
+        s.DURATION_TEXT.format(duration=escape(duration))
         if duration else ""
     )
 
     reason_text = (
-        s.REASON_LOG_TEXT.format(reason=reason)
+        s.REASON_LOG_TEXT.format(reason=escape(reason))
         if reason else ""
     )
 
     log_text = s.MODERATION_LOG.format(
-        first_name=user.first_name,
+        first_name=escape(user.first_name),
         user_id=user.id,
-        action=action,
+        action=escape(action),
         duration_block=duration_text,
         reason_block=reason_text,
-        chat_title=chat.title,
+        chat_title=escape(chat_title),
     )
 
     try:
         if message:
             await bot.forward_message(
-                chat_id=log_chat_id, from_chat_id=chat.id, message_id=message.message_id
+                chat_id=log_chat_id, from_chat_id=chat_id, message_id=message.message_id
             )
             
         await bot.send_message(chat_id=log_chat_id, text=log_text)

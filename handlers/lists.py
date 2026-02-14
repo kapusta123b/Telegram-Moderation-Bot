@@ -1,95 +1,82 @@
-from aiogram import types, Router
+from aiogram import F, Bot, types, Router
 from aiogram.filters import Command
 from aiogram.filters.command import CommandObject
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import config.strings as s
-from database.requests import (
-    get_ban_list,
-    get_mute_list,
-)
 from filters.group_filters import IsAdmin
 from filters.chat_filters import ChatTypeFilter
+from services.history_service import HistoryService, NoRecordsBan, NoRecordsMute, Pagination
 
 lists_router = Router()
 lists_router.message.filter(ChatTypeFilter(["group", "supergroup"]))
 
-@lists_router.message(Command("ban_list"), IsAdmin())
-async def ban_list_cmd(message: types.Message, command: CommandObject, session: AsyncSession):
-    """
-    The handler sends a list of baned users
-    """
+def get_pagination_kb(action: str, page: int, has_next: bool, has_prev: bool):
+    """Navigation button generator"""
 
-    # returns a list of users who have ever been baned
-    bans = await get_ban_list(session)
-
-    if not bans:
-        await message.reply(s.BAN_NO_RECORDS)
-        return
+    builder = InlineKeyboardBuilder()
     
-    # if arguments are passed, it takes the first argument (the number of users to be displayed), otherwise 0
-    number_of_users = int(command.args.split()[0]) if command.args else 0
+    if has_prev:
+        builder.button(text="⬅️ Назад", callback_data=Pagination(action=action, page=page-1))
+    
+    if has_next:
+        builder.button(text="Вперед ➡️", callback_data=Pagination(action=action, page=page+1))
+    
+    return builder.as_markup()
 
-    history_scope = (
-        f"{number_of_users} <b>Users</b>"
-        if number_of_users
-        else "Full history"
+
+@lists_router.message(Command("ban_list", "mute_list"), IsAdmin())
+async def list_cmd(message: types.Message, session: AsyncSession, command: CommandObject):
+    """The main handler for the /ban_list and /mute_list commands"""
+    
+    action = command.command
+
+    services = HistoryService(session=session, history_scope="Full history")
+    
+    try:
+        if action == 'ban_list':
+            result = await services.ban_history(page=1)
+        else:
+            result = await services.mute_history(page=1)
+            
+    except NoRecordsBan:
+        return await message.reply(s.BAN_NO_RECORDS)
+    
+    except NoRecordsMute:
+        return await message.reply(s.MUTE_NO_RECORDS)
+
+    await message.reply(
+        text=result["text"],
+        reply_markup=get_pagination_kb(
+            action=action, 
+            page=1, 
+            has_next=result["has_next"], 
+            has_prev=result["has_prev"]
+        )
     )
 
-    text = s.BAN_HISTORY_HEADER.format(history_scope=history_scope)
 
-    for ban in bans[-number_of_users:]: # the number of users is taken depending on the number in number_of_users
-        date_str = ban.time.strftime("%Y-%m-%d %H:%M") # formatting into a convenient form
-
-        reason_text = ban.reason if ban.reason else "None"
-
-        text += s.LIST_RECORD.format(
-            name=ban.name,
-            user_id=ban.user_id,
-            date=date_str,
-            duration=ban.duration,
-            reason=reason_text,
+@lists_router.callback_query(Pagination.filter())
+async def list_pagination_handler(callback: types.CallbackQuery, callback_data: Pagination, session: AsyncSession):
+    """Handler for pressing the Forward/Backward buttons"""
+    
+    services = HistoryService(session=session, history_scope="Full history")
+    
+    if callback_data.action == 'ban_list':
+        result = await services.ban_history(page=callback_data.page)
+    else:
+        result = await services.mute_history(page=callback_data.page)
+    
+    await callback.message.edit_text(
+        text=result["text"],
+        reply_markup=get_pagination_kb(
+            action=callback_data.action, 
+            page=callback_data.page, 
+            has_next=result["has_next"], 
+            has_prev=result["has_prev"]
         )
-
-    await message.reply(text)
-
-
-@lists_router.message(Command("mute_list"), IsAdmin())
-async def mute_list_cmd(message: types.Message, session: AsyncSession, command: CommandObject):
-    """
-    The handler sends a list of muted users
-    """
-    
-    # returns a list of users who have ever been muted
-    mutes = await get_mute_list(session)
-
-    if not mutes:
-        await message.reply(s.MUTE_NO_RECORDS)
-        return
-
-    # if arguments are passed, it takes the first argument (the number of users to be displayed), otherwise 0
-    number_of_users = int(command.args.split()[0]) if command.args else 0
-    
-    history_scope = (
-        f"{number_of_users} <b>Users</b>"
-        if number_of_users
-        else "Full history"
     )
 
-    text = s.MUTE_HISTORY_HEADER.format(history_scope=history_scope)
-
-    for mute in mutes[-number_of_users:]: # the number of users is taken depending on the number in number_of_users
-        date_str = mute.time.strftime("%Y-%m-%d %H:%M") # formatting into a convenient form
-        
-        reason_text = mute.reason if mute.reason else "None"
-
-        text += s.LIST_RECORD.format(
-            name=mute.name,
-            user_id=mute.user_id,
-            date=date_str,
-            duration=mute.duration,
-            reason=reason_text,
-        )
-
-    await message.reply(text)
+    await callback.answer()
