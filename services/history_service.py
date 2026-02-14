@@ -23,6 +23,9 @@ class HistoryService:
         self.history_scope = history_scope
 
     async def _get_formatted_history(self, fetch_func: Callable, header: str, exception_class: Exception, page: int = 1):
+        """
+        Internal helper to fetch, sort, and format history records with pagination.
+        """
         records = await fetch_func(session=self.session)
 
         if not records:
@@ -60,7 +63,13 @@ class HistoryService:
         }
 
     async def ban_history(self, page: int = 1):
+        """
+        Retrieves a paginated list of ban history records.
+        """
         return await self._get_formatted_history(get_ban_list, BAN_HISTORY_HEADER, NoRecordsBan, page)
 
     async def mute_history(self, page: int = 1):
+        """
+        Retrieves a paginated list of mute history records.
+        """
         return await self._get_formatted_history(get_mute_list, MUTE_HISTORY_HEADER, NoRecordsMute, page)

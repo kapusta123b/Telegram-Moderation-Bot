@@ -9,6 +9,9 @@ from loguru import logger
 
 
 async def create_user(session: AsyncSession, user_id):
+    """
+    Ensures a user exists in the database. Creates a new record if not found.
+    """
     user = await session.get(User, user_id)
 
     if not user:
@@ -20,6 +23,9 @@ async def create_user(session: AsyncSession, user_id):
 
 
 async def add_warn(session: AsyncSession, user_id):
+    """
+    Increments the warning count for a user. Triggers mute status if limit reached.
+    """
     user = await session.get(User, user_id)
     if not user:
         user = User(id=user_id)
@@ -50,6 +56,9 @@ async def add_mute(
     duration: str,
     reason: str = None,
 ):
+    """
+    Logs a new mute action to the database history.
+    """
     user = await session.get(User, user_id)
     if not user:
         user = User(id=user_id)
@@ -82,6 +91,9 @@ async def add_ban(
     duration: str,
     reason: str = None,
 ):
+    """
+    Logs a new ban action to the database history.
+    """
     user = await session.get(User, user_id)
     if not user:
         user = User(id=user_id)
@@ -106,6 +118,9 @@ async def add_ban(
 
 
 async def set_log_chat(session: AsyncSession, log_chat_id):
+    """
+    Configures the chat ID where moderation logs will be sent.
+    """
     log_chat = await session.get(ChatConfig, log_chat_id)
 
     if not log_chat:
@@ -123,6 +138,9 @@ async def set_log_chat(session: AsyncSession, log_chat_id):
 
 
 async def get_log_chat(session: AsyncSession):
+    """
+    Retrieves the currently configured admin log channel ID.
+    """
     result = await session.execute(select(ChatConfig))
 
     config = result.scalars().first()
@@ -131,10 +149,16 @@ async def get_log_chat(session: AsyncSession):
 
 
 async def get_ban_list(session: AsyncSession):
+    """
+    Retrieves all ban history records from the database.
+    """
     result = await session.execute(select(BanHistory))
     return result.scalars().all()
 
 
 async def get_mute_list(session: AsyncSession):
+    """
+    Retrieves all mute history records from the database.
+    """
     result = await session.execute(select(MuteHistory))
     return result.scalars().all()

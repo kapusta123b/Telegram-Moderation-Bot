@@ -27,6 +27,9 @@ class RestrictionService:
 
 
     async def _get_target_member(self, chat_id: int, target_id: int):
+        """
+        Internal helper to retrieve chat member info and verify they aren't an admin.
+        """
         target = await self.bot.get_chat_member(chat_id, target_id)
         if target.status in ("administrator", "creator"):
             raise PermissionError("Cannot restrict admin")
@@ -43,6 +46,9 @@ class RestrictionService:
         extend: bool = False,
         message: types.Message | None = None
     ):
+        """
+        Mutes a user in the specified chat and logs the action.
+        """
         target = await self._get_target_member(chat_id, user.id)
         
         is_muted = (
@@ -91,6 +97,9 @@ class RestrictionService:
 
 
     async def unmute(self, chat_id: int, user: types.User, message: types.Message | None = None):
+        """
+        Restores message permissions for a restricted user.
+        """
         target = await self._get_target_member(chat_id, user.id)
         
         if target.status != "restricted": # if target not muted
@@ -123,6 +132,9 @@ class RestrictionService:
         extend: bool = False,
         message: types.Message | None = None
     ):
+        """
+        Bans a user from the chat and logs the action.
+        """
         target = await self._get_target_member(chat_id, user.id)
         
         if target.status in ("kicked", "left") and not extend:
@@ -167,6 +179,9 @@ class RestrictionService:
 
 
     async def unban(self, chat_id: int, user: types.User, message: types.Message | None = None):
+        """
+        Lifts a ban for a user, allowing them to rejoin the chat.
+        """
         # we don't check target status here as they might not be in the chat
         await self.bot.unban_chat_member(
             chat_id=chat_id,
@@ -193,6 +208,9 @@ class RestrictionService:
         message: types.Message | None = None,
         reason: str | None = None
     ):
+        """
+        Issues a warning to a user, with auto-mute triggered after 3 warnings.
+        """
         current_warns, mutes = await add_warn(self.session, user.id)
 
         if current_warns < 3:

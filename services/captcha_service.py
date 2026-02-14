@@ -11,7 +11,9 @@ class CaptchaService:
         self.session = session
 
     async def restrict_new_user(self, chat_id: int, user_id: int):
-        """Initial mute for the user who just joined."""
+        """
+        Initializes the captcha process by muting the newly joined user.
+        """
 
         await self.bot.restrict_chat_member(
             chat_id=chat_id, 
@@ -20,7 +22,9 @@ class CaptchaService:
         )
 
     async def verify_user(self, chat_id: int, user: types.User):
-        """Unmute user after passing captcha."""
+        """
+        Restores member permissions after successful captcha verification.
+        """
 
         await self.bot.restrict_chat_member(
             chat_id=chat_id,
@@ -30,7 +34,9 @@ class CaptchaService:
         logger.info(f"User {user.id} passed captcha in chat {chat_id}")
 
     async def fail_captcha(self, chat: types.Chat, user: types.User):
-        """Ban user if captcha failed."""
+        """
+        Bans the user for 24 hours if they fail to pass the captcha in time.
+        """
         
         await self.bot.ban_chat_member(
             chat_id=chat.id,

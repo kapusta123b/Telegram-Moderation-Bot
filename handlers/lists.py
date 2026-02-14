@@ -14,7 +14,9 @@ lists_router = Router()
 lists_router.message.filter(ChatTypeFilter(["group", "supergroup"]))
 
 def get_pagination_kb(action: str, page: int, has_next: bool, has_prev: bool):
-    """Navigation button generator"""
+    """
+    Generates an inline keyboard for navigating through history lists.
+    """
 
     builder = InlineKeyboardBuilder()
     

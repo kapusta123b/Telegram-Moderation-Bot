@@ -71,6 +71,10 @@ async def restriction_cmd(
     bot: Bot,
     session: AsyncSession,
 ):
+    """
+    Unified handler for restriction commands (mute, ban, unmute, unban).
+    Supports both reply to message and explicit User ID.
+    """
     
     if not message.reply_to_message and not command.args:
         await message.reply(s.NOT_REPLY_TO_MESSAGE)
