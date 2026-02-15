@@ -27,7 +27,7 @@ from loguru import logger
 setup_logging()
 
 bot = Bot(
-    token=environ.get("SECRET_KEY"), # write your secret token in .env file
+    token=environ.get("BOT_TOKEN"), # write your secret token in .env file
     default=DefaultBotProperties(parse_mode=ParseMode.HTML),
 )
 

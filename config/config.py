@@ -65,3 +65,6 @@ ALLOWED_UPDATES = [
     "chat_member",
     "callback_query",
 ]
+
+# change it if you want more/less warnings before muting the user
+MAX_WARNS = 5

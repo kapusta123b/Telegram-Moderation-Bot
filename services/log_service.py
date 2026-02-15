@@ -22,7 +22,14 @@ async def send_log(
     """
     Sends a log entry to the admin log channel if configured
     """
-    log_chat_id = await get_log_chat(session)
+
+    if isinstance(chat, int):
+        chat_id = chat
+        
+    else:
+        chat_id = chat.id
+
+    log_chat_id = await get_log_chat(session, chat_id)
     if not log_chat_id:
         return
 

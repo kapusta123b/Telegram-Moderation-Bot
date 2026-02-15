@@ -22,11 +22,13 @@ async def delete_system_message(message: types.Message, session: AsyncSession):
     if message.new_chat_members:
         for member in message.new_chat_members:
             if not member.is_bot:
-                await create_user(session, member.id)
+                await create_user(session, member.id, message.chat.id)
 
     elif message.left_chat_member:
         if not message.left_chat_member.is_bot:
-            await create_user(session, message.left_chat_member.id)
+            await create_user(session, message.left_chat_member.id, message.chat.id)
+
+    await session.commit()
 
     try:
         await message.delete()
@@ -44,7 +46,8 @@ async def set_admin_chat(message: types.Message, session: AsyncSession):
     log_chat_id = message.chat.id
 
     try:
-        await set_log_chat(session, log_chat_id)
+        await set_log_chat(session, message.chat.id, log_chat_id)
+        await session.commit()
 
         await message.reply(
             s.SUCCESS_SET_CHAT

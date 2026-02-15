@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
 
 from services.warning_service import get_mute_duration
-from database.requests import add_mute, add_ban, add_warn
-from config.config import permissions_mute, permissions_unmute
+from database.requests import add_mute, add_ban, add_warn, unmute_user, unban_user
+from config.config import MAX_WARNS, permissions_mute, permissions_unmute
 import config.strings as s
 
 from loguru import logger
@@ -74,6 +74,7 @@ class RestrictionService:
         await add_mute(
             session=self.session,
             user_id=user.id,
+            chat_id=chat_id,
             time=datetime.now(),
             name=user.full_name,
             status="Muted",
@@ -110,6 +111,8 @@ class RestrictionService:
             user_id=user.id,
             permissions=permissions_unmute
         )
+
+        await unmute_user(self.session, user.id, chat_id)
 
         await send_log(
             bot=self.bot,
@@ -155,6 +158,7 @@ class RestrictionService:
         await add_ban(
             session=self.session,
             user_id=user.id,
+            chat_id=chat_id,
             time=datetime.now(),
             name=user.full_name,
             status="Banned",
@@ -189,6 +193,8 @@ class RestrictionService:
             only_if_banned=True
         )
 
+        await unban_user(self.session, user.id, chat_id)
+
         await send_log(
             bot=self.bot,
             session=self.session,
@@ -211,17 +217,17 @@ class RestrictionService:
         """
         Issues a warning to a user, with auto-mute triggered after 3 warnings.
         """
-        current_warns, mutes = await add_warn(self.session, user.id)
+        current_warns, mutes = await add_warn(self.session, user.id, chat_id)
 
-        if current_warns < 3:
-            logger.info(f"Warning {current_warns}/3 issued to {user.id}")
+        if current_warns < MAX_WARNS:
+            logger.info(f"Warning {current_warns}/{MAX_WARNS} issued to {user.id}")
 
             await send_log(
                 bot=self.bot,
                 session=self.session,
                 chat=message.chat if message else chat_id,
                 user=user,
-                action=f"Warning ({current_warns}/3)",
+                action=f"Warning ({current_warns}/{MAX_WARNS})",
                 reason=reason,
                 message=message
             )
@@ -247,14 +253,14 @@ class RestrictionService:
             session=self.session,
             chat=message.chat if message else chat_id,
             user=user,
-            action="Auto-Mute (3/3 Warnings)",
+            action=f"Auto-Mute ({MAX_WARNS}/{MAX_WARNS} Warnings)",
             duration=duration_str,
             message=message,
         )
 
         return {
             "status": "auto_muted",
-            "current_warns": 3,
+            "current_warns": current_warns,
             "duration": duration_str,
             "mute_count": mutes,
             "until_date": until_date

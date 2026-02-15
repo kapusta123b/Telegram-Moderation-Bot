@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from sqlalchemy import ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -12,6 +11,7 @@ class User(Base):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    chat_id: Mapped[int] = mapped_column(primary_key=True)
 
     count_mutes: Mapped[int] = mapped_column(nullable=True, default=0)
     count_warns: Mapped[int] = mapped_column(nullable=True, default=0)
@@ -27,7 +27,8 @@ class User(Base):
 class ChatConfig(Base):
     __tablename__ = "chat_config"
 
-    chat_id: Mapped[int] = mapped_column(primary_key=True, nullable=True)
+    group_id: Mapped[int] = mapped_column(primary_key=True)
+    log_chat_id: Mapped[int] = mapped_column(nullable=True)
 
 
 class BanHistory(Base):
@@ -35,7 +36,8 @@ class BanHistory(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    user_id: Mapped[int] = mapped_column()
+    chat_id: Mapped[int] = mapped_column()
 
     time: Mapped[datetime] = mapped_column(nullable=True)
 
@@ -53,7 +55,8 @@ class MuteHistory(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    user_id: Mapped[int] = mapped_column()
+    chat_id: Mapped[int] = mapped_column()
 
     time: Mapped[datetime] = mapped_column(nullable=True)
 

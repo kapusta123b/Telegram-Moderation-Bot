@@ -1,9 +1,10 @@
-from aiogram import Bot, types, Router, F
+from aiogram import Bot, types, Router
 from aiogram.filters import Command
 from aiogram.filters.command import CommandObject
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config.config import MAX_WARNS
 import config.strings as s
 
 from filters.group_filters import IsAdmin
@@ -29,6 +30,7 @@ async def warn_cmd(message: types.Message, bot: Bot, session: AsyncSession):
     """
     Manual warning command for administrators to discipline users.
     """
+
     if not message.reply_to_message:
         await message.reply(s.NOTICE_REPLY)
         return
@@ -50,15 +52,17 @@ async def warn_cmd(message: types.Message, bot: Bot, session: AsyncSession):
             )
         )
     else:
-        # auto-muted after 3 warns
+        # auto-muted after MAX_WARNS warns
         await message.reply(
             text=s.ACCESS_RESTRICTED.format(
                 first_name=target_user.first_name,
-                warnings=3,
+                warnings=MAX_WARNS,
                 duration=result["duration"],
                 mute_count=result["mute_count"]
             )
         )
+
+    await session.commit()
 
 
 @moderation_router.message(
@@ -183,6 +187,8 @@ async def restriction_cmd(
         )
     )
 
+    await session.commit()
+
 
 @moderation_router.edited_message
 @moderation_router.message()
@@ -219,7 +225,7 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
     )
 
     if result["status"] == "warned":
-        logger.info(f"Message from {user.id} in chat {message.chat.id} deleted (bad word). Warnings: {result['current_warns']}/3")
+        logger.info(f"Message from {user.id} in chat {message.chat.id} deleted (bad word). Warnings: {result['current_warns']}/{MAX_WARNS}")
         await message.reply(
             text=s.SENT_AUTO_WARN.format(
                 first_name=user.first_name,
@@ -227,15 +233,17 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
             )
         )
     else:
-        # auto-muted after 3 warns
+        # auto-muted after MAX_WARNS warns
         await message.reply(
             text=s.ACCESS_RESTRICTED.format(
                 first_name=user.first_name,
-                warnings=3,
+                warnings=MAX_WARNS,
                 duration=result["duration"],
                 mute_count=result["mute_count"]
             )
         )
+
+    await session.commit()
 
     try:
         await message.delete()
