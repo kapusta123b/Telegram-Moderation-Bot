@@ -5,7 +5,8 @@ from aiogram.filters.callback_data import CallbackData
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.strings import BAN_HISTORY_HEADER, MUTE_HISTORY_HEADER, LIST_RECORD
-from database.requests import get_ban_list, get_mute_list
+from database.models import BanHistory, MuteHistory
+from database.requests import get_history_list
 
 class NoRecordsBan(Exception):
     pass
@@ -22,11 +23,11 @@ class HistoryService:
         self.session = session
         self.history_scope = history_scope
 
-    async def _get_formatted_history(self, fetch_func: Callable, header: str, exception_class: Exception, page: int = 1):
+    async def _get_formatted_history(self, fetch_func: Callable, model, status_arg: str, header: str, exception_class: Exception, current: bool, page: int = 1):
         """
         Internal helper to fetch, sort, and format history records with pagination.
         """
-        records = await fetch_func(session=self.session)
+        records = await fetch_func(session=self.session, current=current, model=model, status=status_arg)
 
         if not records:
             raise exception_class
@@ -62,14 +63,14 @@ class HistoryService:
             "total_pages": total_pages
         }
 
-    async def ban_history(self, page: int = 1):
+    async def ban_history(self, current: bool, page: int = 1):
         """
         Retrieves a paginated list of ban history records.
         """
-        return await self._get_formatted_history(get_ban_list, BAN_HISTORY_HEADER, NoRecordsBan, page)
+        return await self._get_formatted_history(get_history_list, BanHistory, "is_banned", BAN_HISTORY_HEADER, NoRecordsBan, page, current=current)
 
-    async def mute_history(self, page: int = 1):
+    async def mute_history(self, current: bool, page: int = 1):
         """
         Retrieves a paginated list of mute history records.
         """
-        return await self._get_formatted_history(get_mute_list, MUTE_HISTORY_HEADER, NoRecordsMute, page)
+        return await self._get_formatted_history(get_history_list, MuteHistory, "is_muted", MUTE_HISTORY_HEADER, NoRecordsMute, page, current=current)

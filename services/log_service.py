@@ -38,9 +38,11 @@ async def send_log(
             chat_obj = await bot.get_chat(chat)
             chat_title = chat_obj.title
             chat_id = chat
+
         except Exception:
             chat_title = f"ID: {chat}"
             chat_id = chat
+            
     else:
         chat_title = chat.title
         chat_id = chat.id

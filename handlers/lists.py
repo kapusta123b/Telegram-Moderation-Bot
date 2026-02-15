@@ -21,10 +21,10 @@ def get_pagination_kb(action: str, page: int, has_next: bool, has_prev: bool):
     builder = InlineKeyboardBuilder()
     
     if has_prev:
-        builder.button(text="⬅️ Назад", callback_data=Pagination(action=action, page=page-1))
+        builder.button(text="⬅️ Back", callback_data=Pagination(action=action, page=page-1))
     
     if has_next:
-        builder.button(text="Вперед ➡️", callback_data=Pagination(action=action, page=page+1))
+        builder.button(text="Next ➡️", callback_data=Pagination(action=action, page=page+1))
     
     return builder.as_markup()
 
@@ -35,13 +35,18 @@ async def list_cmd(message: types.Message, session: AsyncSession, command: Comma
     
     action = command.command
 
-    services = HistoryService(session=session, history_scope="Full history")
+    current = "current" in [a.lower() for a in command.args]
+
+    history_scope = "Current users history" if current else "Full history"
+
+    services = HistoryService(session=session, history_scope=history_scope)
     
     try:
         if action == 'ban_list':
-            result = await services.ban_history(page=1)
+            result = await services.ban_history(page=1, current=current)
+
         else:
-            result = await services.mute_history(page=1)
+            result = await services.mute_history(page=1, current=current)
             
     except NoRecordsBan:
         return await message.reply(s.BAN_NO_RECORDS)

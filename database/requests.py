@@ -94,6 +94,7 @@ async def add_ban(
     """
     Logs a new ban action to the database history.
     """
+
     user = await session.get(User, (user_id, chat_id))
     if not user:
         user = User(id=user_id, chat_id=chat_id)
@@ -120,6 +121,7 @@ async def unmute_user(session: AsyncSession, user_id: int, chat_id: int):
     """
     Updates the user's status in the database to unmuted.
     """
+
     user = await session.get(User, (user_id, chat_id))
     if user:
         user.is_muted = False
@@ -130,6 +132,7 @@ async def unban_user(session: AsyncSession, user_id: int, chat_id: int):
     """
     Updates the user's status in the database to unbanned.
     """
+
     user = await session.get(User, (user_id, chat_id))
     if user:
         user.is_banned = False
@@ -140,6 +143,7 @@ async def set_log_chat(session: AsyncSession, group_id, log_chat_id):
     """
     Configures the chat ID where moderation logs will be sent for a specific group.
     """
+
     config = await session.get(ChatConfig, group_id)
 
     if not config:
@@ -159,17 +163,12 @@ async def get_log_chat(session: AsyncSession, group_id):
     return config.log_chat_id if config else None
 
 
-async def get_ban_list(session: AsyncSession):
-    """
-    Retrieves all ban history records from the database.
-    """
-    result = await session.execute(select(BanHistory))
-    return result.scalars().all()
-
-
-async def get_mute_list(session: AsyncSession):
-    """
-    Retrieves all mute history records from the database.
-    """
-    result = await session.execute(select(MuteHistory))
+async def get_history_list(session: AsyncSession, model, current: bool, status_arg: str,):
+    query = select(model)
+    if current:
+        query = query.join(User, (model.user_id == User.id) & (model.chat_id == User.chat_id))\
+                     .where(getattr(User, status_arg))
+    
+        
+    result = await session.execute(query)
     return result.scalars().all()
