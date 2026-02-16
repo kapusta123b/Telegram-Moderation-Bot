@@ -1,10 +1,10 @@
 from datetime import datetime
 
 from config.config import MAX_WARNS
-from database.models import BanHistory, MuteHistory, User, ChatConfig
+from database.models import BanHistory, MuteHistory, User, ChatConfig, WarnHistory
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, or_
 
 from loguru import logger
 
@@ -53,7 +53,8 @@ async def add_mute(
     time: datetime,
     name: str,
     status: str,
-    duration: str,
+    duration_str: str,
+    until_date: datetime | None,
     reason: str = None,
 ):
     """
@@ -66,6 +67,7 @@ async def add_mute(
 
     user.count_mutes = (user.count_mutes or 0) + 1
     user.is_muted = True
+    user.mute_duration = until_date
 
     new_record = MuteHistory(
         user_id=user_id,
@@ -73,7 +75,7 @@ async def add_mute(
         time=time,
         name=name,
         status=status,
-        duration=duration,
+        duration=duration_str,
         reason=reason,
     )
 
@@ -89,6 +91,7 @@ async def add_ban(
     name: str,
     status: str,
     duration: str,
+    until_date: datetime | None,
     reason: str = None,
 ):
     """
@@ -102,6 +105,8 @@ async def add_ban(
 
     user.count_bans = (user.count_bans or 0) + 1
     user.is_banned = True
+    user.ban_duration = until_date
+
 
     new_record = BanHistory(
         user_id=user_id,
@@ -116,6 +121,34 @@ async def add_ban(
     session.add(new_record)
     logger.success(f"Ban record added for user {user_id} in chat {chat_id}")
 
+async def add_warn_log(
+    session: AsyncSession,
+    user_id: int,
+    chat_id: int,
+    time: datetime,
+    name: str,
+    status: str,
+):
+    """
+    Logs a new warn action to the database history.
+    """
+
+    user = await session.get(User, (user_id, chat_id))
+    if not user:
+        user = User(id=user_id, chat_id=chat_id)
+        session.add(user)
+
+    new_record = WarnHistory(
+        user_id=user_id,
+        chat_id=chat_id,
+        time=time,
+        name=name,
+        status=status,
+    )
+
+    session.add(new_record)
+    logger.success(f"Warn record added for user {user_id} in chat {chat_id}")
+
 
 async def unmute_user(session: AsyncSession, user_id: int, chat_id: int):
     """
@@ -125,6 +158,8 @@ async def unmute_user(session: AsyncSession, user_id: int, chat_id: int):
     user = await session.get(User, (user_id, chat_id))
     if user:
         user.is_muted = False
+        user.mute_duration = None
+
         logger.info(f"User {user_id} in chat {chat_id} unmuted in database")
 
 
@@ -136,6 +171,8 @@ async def unban_user(session: AsyncSession, user_id: int, chat_id: int):
     user = await session.get(User, (user_id, chat_id))
     if user:
         user.is_banned = False
+        user.ban_duration = None
+
         logger.info(f"User {user_id} in chat {chat_id} unbanned in database")
 
 
@@ -163,11 +200,19 @@ async def get_log_chat(session: AsyncSession, group_id):
     return config.log_chat_id if config else None
 
 
-async def get_history_list(session: AsyncSession, model, current: bool, status_arg: str,):
+async def get_history_list(session: AsyncSession, model, current: bool, status_arg: str | None,):
     query = select(model)
-    if current:
+
+    if current and status_arg:
+        duration_field = User.mute_duration if status_arg == "is_muted" else User.ban_duration
         query = query.join(User, (model.user_id == User.id) & (model.chat_id == User.chat_id))\
-                     .where(getattr(User, status_arg))
+                     .where(
+                         getattr(User, status_arg) == True,
+                         or_(
+                             duration_field == None,
+                             duration_field > datetime.now()
+                         )
+                        )
     
         
     result = await session.execute(query)

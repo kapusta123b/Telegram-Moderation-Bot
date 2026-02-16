@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
 
 from services.warning_service import get_mute_duration
-from database.requests import add_mute, add_ban, add_warn, unmute_user, unban_user
+from database.requests import add_mute, add_ban, add_warn, add_warn_log, unmute_user, unban_user
 from config.config import MAX_WARNS, permissions_mute, permissions_unmute
 import config.strings as s
 
@@ -78,7 +78,8 @@ class RestrictionService:
             time=datetime.now(),
             name=user.full_name,
             status="Muted",
-            duration=duration_str,
+            duration_str=duration_str,
+            until_date=until_date,
             reason=reason
         )
 
@@ -230,6 +231,15 @@ class RestrictionService:
                 action=f"Warning ({current_warns}/{MAX_WARNS})",
                 reason=reason,
                 message=message
+            )
+
+            await add_warn_log(
+                session=self.session,
+                user_id=user.id,
+                chat_id=chat_id,
+                time=datetime.now(),
+                name=user.full_name,
+                status='Warned'
             )
             
             return {"status": "warned", "current_warns": current_warns}

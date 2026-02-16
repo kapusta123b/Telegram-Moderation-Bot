@@ -4,14 +4,17 @@ from typing import Callable
 from aiogram.filters.callback_data import CallbackData
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config.strings import BAN_HISTORY_HEADER, MUTE_HISTORY_HEADER, LIST_RECORD
-from database.models import BanHistory, MuteHistory
+from config.strings import BAN_HISTORY_HEADER, MUTE_HISTORY_HEADER, LIST_RECORD, WARN_HISTORY_HEADER
+from database.models import BanHistory, MuteHistory, WarnHistory
 from database.requests import get_history_list
 
 class NoRecordsBan(Exception):
     pass
 
 class NoRecordsMute(Exception):
+    pass
+
+class NoRecordsWarn(Exception):
     pass
 
 class Pagination(CallbackData, prefix='pag'):
@@ -23,7 +26,7 @@ class HistoryService:
         self.session = session
         self.history_scope = history_scope
 
-    async def _get_formatted_history(self, fetch_func: Callable, model, status_arg: str, header: str, exception_class: Exception, current: bool, page: int = 1):
+    async def _get_formatted_history(self, fetch_func: Callable, model, status_arg: str | None, header: str, exception_class: Exception, current: bool, page: int = 1):
         """
         Internal helper to fetch, sort, and format history records with pagination.
         """
@@ -67,10 +70,16 @@ class HistoryService:
         """
         Retrieves a paginated list of ban history records.
         """
-        return await self._get_formatted_history(get_history_list, BanHistory, "is_banned", BAN_HISTORY_HEADER, NoRecordsBan, page, current=current)
+        return await self._get_formatted_history(fetch_func=get_history_list, model=BanHistory, status_arg="is_banned", header=BAN_HISTORY_HEADER, exception_class=NoRecordsBan, page=page, current=current)
 
     async def mute_history(self, current: bool, page: int = 1):
         """
         Retrieves a paginated list of mute history records.
         """
-        return await self._get_formatted_history(get_history_list, MuteHistory, "is_muted", MUTE_HISTORY_HEADER, NoRecordsMute, page, current=current)
+        return await self._get_formatted_history(fetch_func=get_history_list, model=MuteHistory, status_arg="is_muted", header=MUTE_HISTORY_HEADER, exception_class=NoRecordsMute, page=page, current=current)
+    
+    async def warn_history(self, current: bool, page: int = 1):
+        """
+        Retrieves a paginated list of warn history records.
+        """
+        return await self._get_formatted_history(fetch_func=get_history_list, model=WarnHistory, status_arg=None, header=WARN_HISTORY_HEADER, exception_class=NoRecordsWarn, page=page, current=current)

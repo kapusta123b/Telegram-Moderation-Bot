@@ -67,3 +67,18 @@ class MuteHistory(Base):
     duration: Mapped[str] = mapped_column(nullable=True)
 
     reason: Mapped[str] = mapped_column(nullable=True)
+
+
+class WarnHistory(Base):
+    __tablename__ = "warn_history"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    user_id: Mapped[int] = mapped_column()
+    chat_id: Mapped[int] = mapped_column()
+
+    time: Mapped[datetime] = mapped_column(nullable=True)
+
+    name: Mapped[str] = mapped_column(nullable=True)
+
+    status: Mapped[str] = mapped_column(nullable=True)

@@ -88,6 +88,15 @@ MUTE_HISTORY_HEADER = (
     "🔇 <b>Mute History ({history_scope}):</b>\n\n"
 )
 
+# warn_history section
+
+WARN_HISTORY_HEADER = (
+    "⚠️ <b>Warn History ({history_scope}):</b>\n\n"
+)
+
+WARN_NO_RECORDS = "📋 <b>Warn History:</b> No records found."
+
+
 # set_admin_chat section
 SUCCESS_SET_CHAT = "✅ <b>Success:</b> This channel has been set as the <b>Admin Log Channel</b>."
 

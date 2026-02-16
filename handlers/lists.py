@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import config.strings as s
 from filters.group_filters import IsAdmin
 from filters.chat_filters import ChatTypeFilter
-from services.history_service import HistoryService, NoRecordsBan, NoRecordsMute, Pagination
+from services.history_service import HistoryService, NoRecordsBan, NoRecordsMute, NoRecordsWarn, Pagination
 
 lists_router = Router()
 lists_router.message.filter(ChatTypeFilter(["group", "supergroup"]))
@@ -29,9 +29,9 @@ def get_pagination_kb(action: str, page: int, has_next: bool, has_prev: bool):
     return builder.as_markup()
 
 
-@lists_router.message(Command("ban_list", "mute_list"), IsAdmin())
+@lists_router.message(Command("ban_list", "mute_list", 'warn_list'), IsAdmin())
 async def list_cmd(message: types.Message, session: AsyncSession, command: CommandObject):
-    """The main handler for the /ban_list and /mute_list commands"""
+    """The main handler for the /ban_list, /mute_list and /warn_list commands"""
     
     action = command.command
 
@@ -45,14 +45,22 @@ async def list_cmd(message: types.Message, session: AsyncSession, command: Comma
         if action == 'ban_list':
             result = await services.ban_history(page=1, current=current)
 
-        else:
+        elif action == 'mute_list':
             result = await services.mute_history(page=1, current=current)
+
+        else:
+            result = await services.warn_history(page=1, current=False)
+
             
     except NoRecordsBan:
         return await message.reply(s.BAN_NO_RECORDS)
     
     except NoRecordsMute:
         return await message.reply(s.MUTE_NO_RECORDS)
+    
+    except NoRecordsWarn:
+        return await message.reply(s.WARN_NO_RECORDS)
+
 
     await message.reply(
         text=result["text"],
