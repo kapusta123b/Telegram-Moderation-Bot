@@ -60,6 +60,7 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 ### 👥 Group Moderation (Admin Only)
 - `/admin_chat` — Set the current chat as the **Admin Log Channel**.
 - `/warn` — Issue a formal warning (Reply required).
+- `/unwarn` — Remove one warning from a user (Reply required).
 - `/mute [duration/ID] [set]` — Mute a user (Reply or User ID).
 - `/unmute` — Restore message permissions (Reply required).
 - `/ban [duration/ID] [set]` — Ban a user from the group (Reply or User ID).

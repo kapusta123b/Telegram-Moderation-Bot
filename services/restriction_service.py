@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
 
 from services.warning_service import get_mute_duration
-from database.requests import add_mute, add_ban, add_warn, add_warn_log, unmute_user, unban_user
+from database.requests import add_mute, add_ban, add_warn, add_warn_log, unmute_user, unban_user, unwarn_user
 from config.config import MAX_WARNS, permissions_mute, permissions_unmute
 import config.strings as s
 
@@ -18,6 +18,9 @@ class NotRestrictedError(Exception):
     pass
 
 class AlreadyBannedError(Exception):
+    pass
+
+class ZeroCurrentWarns(Exception):
     pass
 
 class RestrictionService:
@@ -274,4 +277,32 @@ class RestrictionService:
             "duration": duration_str,
             "mute_count": mutes,
             "until_date": until_date
+        }
+    
+
+    async def unwarn(
+            self,
+            chat_id: int,
+            user: types.User,
+            message: types.Message | None = None,
+    ):
+        
+        current_warns = await unwarn_user(self.session, user_id=user.id, chat_id=chat_id)
+
+        if current_warns < 0:
+            raise ZeroCurrentWarns
+
+        await send_log(
+                bot=self.bot,
+                session=self.session,
+                chat=message.chat if message else chat_id,
+                user=user,
+                action=f"Unwarn",
+                duration=None,
+                message=message,
+            )
+        
+        return {
+            "status": "unwarned",
+            "current_warns": current_warns
         }

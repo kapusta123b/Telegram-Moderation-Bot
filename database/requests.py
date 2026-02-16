@@ -176,6 +176,20 @@ async def unban_user(session: AsyncSession, user_id: int, chat_id: int):
         logger.info(f"User {user_id} in chat {chat_id} unbanned in database")
 
 
+async def unwarn_user(session: AsyncSession, user_id: int, chat_id: int):
+    """
+    Decrements the user's warning count in the database.
+    """
+
+    user = await session.get(User, (user_id, chat_id))
+    if not user or user.count_warns <= 0:
+        return -1
+
+    user.count_warns -= 1
+    logger.info(f"User {user_id} in chat {chat_id} -1 warn in database")
+    return user.count_warns
+
+
 async def set_log_chat(session: AsyncSession, group_id, log_chat_id):
     """
     Configures the chat ID where moderation logs will be sent for a specific group.

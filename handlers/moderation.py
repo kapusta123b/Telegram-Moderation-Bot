@@ -17,6 +17,7 @@ from services.restriction_service import (
     AlreadyRestrictedError,
     NotRestrictedError,
     AlreadyBannedError,
+    ZeroCurrentWarns,
 )
 from utils.time import parse_time
 from utils.text import contains_bad_word
@@ -24,9 +25,8 @@ from utils.text import contains_bad_word
 moderation_router = Router()
 moderation_router.message.filter(ChatTypeFilter(["group", "supergroup"]))
 
-
-@moderation_router.message(Command("warn"), IsAdmin())
-async def warn_cmd(message: types.Message, bot: Bot, session: AsyncSession):
+@moderation_router.message(Command("warn", "unwarn"), IsAdmin())
+async def warn_cmd(message: types.Message, bot: Bot, session: AsyncSession, command: CommandObject):
     """
     Manual warning command for administrators to discipline users.
     """
@@ -34,15 +34,30 @@ async def warn_cmd(message: types.Message, bot: Bot, session: AsyncSession):
     if not message.reply_to_message:
         await message.reply(s.NOTICE_REPLY)
         return
+    
+    action = command.command
 
     target_user = message.reply_to_message.from_user
     service = RestrictionService(bot, session)
-    
-    result = await service.warn(
-        chat_id=message.chat.id,
-        user=target_user,
-        message=message.reply_to_message
-    )
+
+    if action == 'warn':
+        result = await service.warn(
+            chat_id=message.chat.id,
+            user=target_user,
+            message=message.reply_to_message
+        )
+    else:
+        try:
+            result = await service.unwarn(
+                message.chat.id,
+                target_user, 
+                message.reply_to_message
+            )
+        except ZeroCurrentWarns:
+            await message.reply(
+                text=s.ZERO_CURRENT_WARNS
+                )
+            return
 
     if result["status"] == "warned":
         await message.reply(
@@ -51,7 +66,8 @@ async def warn_cmd(message: types.Message, bot: Bot, session: AsyncSession):
                 current_warns=result["current_warns"]
             )
         )
-    else:
+
+    elif result["status"] == "auto_muted":
         # auto-muted after MAX_WARNS warns
         await message.reply(
             text=s.ACCESS_RESTRICTED.format(
@@ -59,6 +75,14 @@ async def warn_cmd(message: types.Message, bot: Bot, session: AsyncSession):
                 warnings=MAX_WARNS,
                 duration=result["duration"],
                 mute_count=result["mute_count"]
+            )
+        )
+
+    elif result["status"] == "unwarned":
+        await message.reply(
+            text=s.ACTION_UNWARN_TO.format(
+                first_name=target_user.first_name,
+                current_warns=result["current_warns"]
             )
         )
 

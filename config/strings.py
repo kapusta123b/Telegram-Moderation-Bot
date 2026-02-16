@@ -13,7 +13,7 @@ MODERATION_LOG = (
     "{reason_block}"
     "\n<b>Chat:</b> {chat_title}"
 )
-
+# warn section
 ACCESS_RESTRICTED = (
     "🚫 <b>Access Restricted:</b> User <b>{first_name}</b> has reached "
     "the limit of <b>{warnings}/3 warnings</b>.\n"
@@ -22,6 +22,13 @@ ACCESS_RESTRICTED = (
 
 ACTION_WARN_TO = (
     "🔘 <b>Action:</b> Warning issued to <b>{first_name}</b>.\n"
+    "📊 <b>Total Warnings:</b> {current_warns}/3"
+)
+
+ZERO_CURRENT_WARNS = 'ZERO WARNS ИДИ В ЖОПУ'
+
+ACTION_UNWARN_TO = (
+    "🔘 <b>Action:</b> Unwarning issued to <b>{first_name}</b>.\n"
     "📊 <b>Total Warnings:</b> {current_warns}/3"
 )
 
@@ -181,6 +188,7 @@ COMMANDS_TEXT = (
         "<b>Group Administration:</b>\n"
         "• /admin_chat - Set the current chat as the Admin Log Channel.\n"
         "• /warn - Issue a formal warning (reply required).\n"
+        "• /unwarn - Remove one warning (reply required).\n"
         "• /mute <code>[time/ID] [set]</code> - Mute user (reply or ID required).\n"
         "• /unmute - Unmute user (reply required).\n"
         "• /ban <code>[time/ID] [set]</code> - Ban user (reply or ID required).\n"
