@@ -25,7 +25,7 @@ async def send_log(
 
     if isinstance(chat, int):
         chat_id = chat
-        
+
     else:
         chat_id = chat.id
 
@@ -42,20 +42,16 @@ async def send_log(
         except Exception:
             chat_title = f"ID: {chat}"
             chat_id = chat
-            
+
     else:
         chat_title = chat.title
         chat_id = chat.id
 
     duration_text = (
-        s.DURATION_TEXT.format(duration=escape(duration))
-        if duration else ""
+        s.DURATION_TEXT.format(duration=escape(duration)) if duration else ""
     )
 
-    reason_text = (
-        s.REASON_LOG_TEXT.format(reason=escape(reason))
-        if reason else ""
-    )
+    reason_text = s.REASON_LOG_TEXT.format(reason=escape(reason)) if reason else ""
 
     log_text = s.MODERATION_LOG.format(
         first_name=escape(user.first_name),
@@ -71,7 +67,7 @@ async def send_log(
             await bot.forward_message(
                 chat_id=log_chat_id, from_chat_id=chat_id, message_id=message.message_id
             )
-            
+
         await bot.send_message(chat_id=log_chat_id, text=log_text)
         logger.debug(f"Log sent to chat {log_chat_id} for user {user.id}")
 

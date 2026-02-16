@@ -4,42 +4,63 @@ from typing import Callable
 from aiogram.filters.callback_data import CallbackData
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config.strings import BAN_HISTORY_HEADER, MUTE_HISTORY_HEADER, LIST_RECORD, WARN_HISTORY_HEADER
+from config.strings import (
+    BAN_HISTORY_HEADER,
+    MUTE_HISTORY_HEADER,
+    LIST_RECORD,
+    WARN_HISTORY_HEADER,
+)
 from database.models import BanHistory, MuteHistory, WarnHistory
 from database.requests import get_history_list
+
 
 class NoRecordsBan(Exception):
     pass
 
+
 class NoRecordsMute(Exception):
     pass
+
 
 class NoRecordsWarn(Exception):
     pass
 
-class Pagination(CallbackData, prefix='pag'):
+
+class Pagination(CallbackData, prefix="pag"):
     action: str
     page: int
+
 
 class HistoryService:
     def __init__(self, session: AsyncSession, history_scope: str):
         self.session = session
         self.history_scope = history_scope
 
-    async def _get_formatted_history(self, fetch_func: Callable, model, status_arg: str | None, header: str, exception_class: Exception, current: bool, page: int = 1):
+    async def _get_formatted_history(
+        self,
+        fetch_func: Callable,
+        model,
+        status_arg: str | None,
+        header: str,
+        exception_class: Exception,
+        current: bool,
+        page: int = 1,
+    ):
         """
         Internal helper to fetch, sort, and format history records with pagination.
         """
-        records = await fetch_func(session=self.session, current=current, model=model, status=status_arg)
+        records = await fetch_func(
+            session=self.session, current=current, model=model, status=status_arg
+        )
 
         if not records:
             raise exception_class
 
         records = sorted(records, key=lambda x: x.time, reverse=True)
 
-        PER_PAGE = 10 
+        PER_PAGE = 10
         total_pages = math.ceil(len(records) / PER_PAGE)
-        
+
         start = (page - 1) * PER_PAGE
         end = start + PER_PAGE
         page_records = records[start:end]
@@ -63,23 +84,47 @@ class HistoryService:
             "text": text,
             "has_next": page < total_pages,
             "has_prev": page > 1,
-            "total_pages": total_pages
+            "total_pages": total_pages,
         }
 
     async def ban_history(self, current: bool, page: int = 1):
         """
         Retrieves a paginated list of ban history records.
         """
-        return await self._get_formatted_history(fetch_func=get_history_list, model=BanHistory, status_arg="is_banned", header=BAN_HISTORY_HEADER, exception_class=NoRecordsBan, page=page, current=current)
+        return await self._get_formatted_history(
+            fetch_func=get_history_list,
+            model=BanHistory,
+            status_arg="is_banned",
+            header=BAN_HISTORY_HEADER,
+            exception_class=NoRecordsBan,
+            page=page,
+            current=current,
+        )
 
     async def mute_history(self, current: bool, page: int = 1):
         """
         Retrieves a paginated list of mute history records.
         """
-        return await self._get_formatted_history(fetch_func=get_history_list, model=MuteHistory, status_arg="is_muted", header=MUTE_HISTORY_HEADER, exception_class=NoRecordsMute, page=page, current=current)
-    
+        return await self._get_formatted_history(
+            fetch_func=get_history_list,
+            model=MuteHistory,
+            status_arg="is_muted",
+            header=MUTE_HISTORY_HEADER,
+            exception_class=NoRecordsMute,
+            page=page,
+            current=current,
+        )
+
     async def warn_history(self, current: bool, page: int = 1):
         """
         Retrieves a paginated list of warn history records.
         """
-        return await self._get_formatted_history(fetch_func=get_history_list, model=WarnHistory, status_arg=None, header=WARN_HISTORY_HEADER, exception_class=NoRecordsWarn, page=page, current=current)
+        return await self._get_formatted_history(
+            fetch_func=get_history_list,
+            model=WarnHistory,
+            status_arg=None,
+            header=WARN_HISTORY_HEADER,
+            exception_class=NoRecordsWarn,
+            page=page,
+            current=current,
+        )

@@ -3,6 +3,7 @@ import asyncio
 from os import environ
 
 from dotenv import load_dotenv
+
 load_dotenv(".env")
 
 from config.logging_config import setup_logging
@@ -27,7 +28,7 @@ from loguru import logger
 setup_logging()
 
 bot = Bot(
-    token=environ.get("BOT_TOKEN"), # write your secret token in .env file
+    token=environ.get("BOT_TOKEN"),  # write your secret token in .env file
     default=DefaultBotProperties(parse_mode=ParseMode.HTML),
 )
 
@@ -40,6 +41,7 @@ dp.include_routers(
     moderation_router,
     captcha_router,
 )
+
 
 async def main():
     await create_db()
@@ -55,7 +57,8 @@ async def main():
         scope=types.BotCommandScopeAllChatAdministrators(),
     )
 
-    logger.success('Bot successfully started and polling...')
+    logger.success("Bot successfully started and polling...")
     await dp.start_polling(bot, allowed_updates=ALLOWED_UPDATES)
+
 
 asyncio.run(main())

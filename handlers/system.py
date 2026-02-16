@@ -13,6 +13,7 @@ from loguru import logger
 system_router = Router()
 system_router.message.filter(ChatTypeFilter(["group", "supergroup"]))
 
+
 @system_router.message(F.new_chat_members | F.left_chat_member)
 async def delete_system_message(message: types.Message, session: AsyncSession):
     """
@@ -49,14 +50,10 @@ async def set_admin_chat(message: types.Message, session: AsyncSession):
         await set_log_chat(session, message.chat.id, log_chat_id)
         await session.commit()
 
-        await message.reply(
-            s.SUCCESS_SET_CHAT
-        )
+        await message.reply(s.SUCCESS_SET_CHAT)
 
     except ValueError:
-        await message.reply(
-            s.ALREADY_CONFIGURED
-        )
+        await message.reply(s.ALREADY_CONFIGURED)
         logger.info(f"Admin chat already configured for chat {message.chat.id}")
 
 
@@ -64,7 +61,4 @@ async def set_admin_chat(message: types.Message, session: AsyncSession):
 async def on_bot_added_to_group(event: types.ChatMemberUpdated):
     if event.new_chat_member.status in ("member", "administrator"):
         logger.info(f"Bot added to chat {event.chat.id} ({event.chat.title})")
-        await event.bot.send_message(
-            chat_id=event.chat.id,
-            text=s.WELCOME_TEXT_GROUP
-        )
+        await event.bot.send_message(chat_id=event.chat.id, text=s.WELCOME_TEXT_GROUP)

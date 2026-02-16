@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from loguru import logger
 
+
 def parse_time(time_str: str) -> datetime | str | None:
     """
     Parses a time string (for example, '1m') and returns a datetime object or "permanent".
@@ -13,7 +14,7 @@ def parse_time(time_str: str) -> datetime | str | None:
     unit = time_str[
         -1
     ]  # Extract the last character as the time unit (e.g., 'm' from '10m')
-    
+
     units = {
         "m": "minutes",
         "h": "hours",

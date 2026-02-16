@@ -4,6 +4,7 @@ import logging
 
 from loguru import logger
 
+
 class InterceptHandler(logging.Handler):
     def emit(self, record):
         try:
@@ -16,12 +17,14 @@ class InterceptHandler(logging.Handler):
             frame = frame.f_back
             depth += 1
 
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+        logger.opt(depth=depth, exception=record.exc_info).log(
+            level, record.getMessage()
+        )
 
 
 def setup_logging():
     """
-    Configures the logger for the entire application 
+    Configures the logger for the entire application
     """
 
     logger.remove()
@@ -32,16 +35,16 @@ def setup_logging():
         "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "
         "<level>{message}</level>"
     )
-    
+
     logger.add(sys.stderr, level="INFO", format=log_format, colorize=True)
 
     logger.add(
-            "config/logs.log",
-            level="DEBUG",
-            format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
-            rotation="10 MB",
-            retention="1 week",
-            enqueue=True
+        "config/logs.log",
+        level="DEBUG",
+        format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
+        rotation="10 MB",
+        retention="1 week",
+        enqueue=True,
     )
 
     # Intercept standard logging
@@ -53,4 +56,6 @@ def setup_logging():
         logging_logger.handlers = [InterceptHandler()]
         logging_logger.propagate = False
 
-    logger.info("Logging is configured to output to console and file (intercepting aiogram & sqlalchemy).")
+    logger.info(
+        "Logging is configured to output to console and file (intercepting aiogram & sqlalchemy)."
+    )

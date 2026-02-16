@@ -19,7 +19,6 @@ async def create_user(session: AsyncSession, user_id, chat_id):
         new_user = User(id=user_id, chat_id=chat_id)
         session.add(new_user)
         logger.info(f"New user {user_id} in chat {chat_id} created in database")
-    
 
 
 async def add_warn(session: AsyncSession, user_id, chat_id):
@@ -27,7 +26,7 @@ async def add_warn(session: AsyncSession, user_id, chat_id):
     Increments the warning count for a user. Triggers mute status if limit reached.
     """
     user = await session.get(User, (user_id, chat_id))
-    
+
     if not user:
         user = User(id=user_id, chat_id=chat_id)
         session.add(user)
@@ -107,7 +106,6 @@ async def add_ban(
     user.is_banned = True
     user.ban_duration = until_date
 
-
     new_record = BanHistory(
         user_id=user_id,
         chat_id=chat_id,
@@ -120,6 +118,7 @@ async def add_ban(
 
     session.add(new_record)
     logger.success(f"Ban record added for user {user_id} in chat {chat_id}")
+
 
 async def add_warn_log(
     session: AsyncSession,
@@ -203,7 +202,7 @@ async def set_log_chat(session: AsyncSession, group_id, log_chat_id):
     else:
         config.log_chat_id = log_chat_id
 
-    logger.success(f'Log channel for group {group_id} set to {log_chat_id}')
+    logger.success(f"Log channel for group {group_id} set to {log_chat_id}")
 
 
 async def get_log_chat(session: AsyncSession, group_id):
@@ -214,20 +213,24 @@ async def get_log_chat(session: AsyncSession, group_id):
     return config.log_chat_id if config else None
 
 
-async def get_history_list(session: AsyncSession, model, current: bool, status_arg: str | None,):
+async def get_history_list(
+    session: AsyncSession,
+    model,
+    current: bool,
+    status_arg: str | None,
+):
     query = select(model)
 
     if current and status_arg:
-        duration_field = User.mute_duration if status_arg == "is_muted" else User.ban_duration
-        query = query.join(User, (model.user_id == User.id) & (model.chat_id == User.chat_id))\
-                     .where(
-                         getattr(User, status_arg) == True,
-                         or_(
-                             duration_field == None,
-                             duration_field > datetime.now()
-                         )
-                        )
-    
-        
+        duration_field = (
+            User.mute_duration if status_arg == "is_muted" else User.ban_duration
+        )
+        query = query.join(
+            User, (model.user_id == User.id) & (model.chat_id == User.chat_id)
+        ).where(
+            getattr(User, status_arg) == True,
+            or_(duration_field == None, duration_field > datetime.now()),
+        )
+
     result = await session.execute(query)
     return result.scalars().all()

@@ -40,9 +40,9 @@ async def captcha(event: types.ChatMemberUpdated, session: AsyncSession):
         chat_id=event.chat.id, user_id=user.id
     )
 
-    if (current_member.status == "restricted" and not current_member.can_send_messages):
+    if current_member.status == "restricted" and not current_member.can_send_messages:
         await service.fail_captcha(event.chat, user)
-        
+
         await event.bot.send_message(
             chat_id=event.chat.id,
             text=s.VERIFICATION_FAILED.format(first_name=user.first_name),

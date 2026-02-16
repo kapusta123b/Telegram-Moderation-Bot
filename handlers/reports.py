@@ -11,6 +11,7 @@ from filters.chat_filters import ChatTypeFilter
 reports_router = Router()
 reports_router.message.filter(ChatTypeFilter(["group", "supergroup"]))
 
+
 @reports_router.message(Command("report"))
 async def report_cmd(
     message: types.Message, command: CommandObject, bot: Bot, session: AsyncSession
@@ -21,7 +22,7 @@ async def report_cmd(
 
     if message.reply_to_message:
         target_user = message.reply_to_message.from_user
-        
+
         reporter = message.from_user
 
         reason = command.args if command.args else "No reason provided"
@@ -36,9 +37,7 @@ async def report_cmd(
             reason=reason,
         )
 
-        await message.reply(
-            s.REPORT_SENT
-        )
+        await message.reply(s.REPORT_SENT)
 
     else:
         await message.reply(s.REPORT_NO_REPLY)

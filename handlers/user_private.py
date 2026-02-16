@@ -1,6 +1,14 @@
 from aiogram import types, Router, F
 from aiogram.filters import CommandStart, Command
-from config.strings import ABOUT_TEXT, COMMANDS_TEXT, CONFIG_TEXT, KB_ALL_COMMANDS, KB_HOW_USE_BOT, KB_INFO_BOT, WELCOME_TEXT_PRIVATE
+from config.strings import (
+    ABOUT_TEXT,
+    COMMANDS_TEXT,
+    CONFIG_TEXT,
+    KB_ALL_COMMANDS,
+    KB_HOW_USE_BOT,
+    KB_INFO_BOT,
+    WELCOME_TEXT_PRIVATE,
+)
 from filters.chat_filters import ChatTypeFilter
 from loguru import logger
 
@@ -15,7 +23,7 @@ async def start_cmd(message: types.Message):
     Provides a welcome message and navigation keyboard.
     """
     logger.info(f"User {message.from_user.id} started bot in private")
-    
+
     text = WELCOME_TEXT_PRIVATE.format(full_name=message.from_user.full_name)
     kb = [
         [types.KeyboardButton(text=KB_INFO_BOT)],

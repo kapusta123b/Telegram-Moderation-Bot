@@ -5,6 +5,7 @@ from config.config import permissions_mute, permissions_unmute
 from services.log_service import send_log
 from loguru import logger
 
+
 class CaptchaService:
     def __init__(self, bot: Bot, session: AsyncSession):
         self.bot = bot
@@ -16,9 +17,7 @@ class CaptchaService:
         """
 
         await self.bot.restrict_chat_member(
-            chat_id=chat_id, 
-            user_id=user_id, 
-            permissions=permissions_mute
+            chat_id=chat_id, user_id=user_id, permissions=permissions_mute
         )
 
     async def verify_user(self, chat_id: int, user: types.User):
@@ -37,13 +36,13 @@ class CaptchaService:
         """
         Bans the user for 24 hours if they fail to pass the captcha in time.
         """
-        
+
         await self.bot.ban_chat_member(
             chat_id=chat.id,
             user_id=user.id,
             until_date=datetime.now() + timedelta(days=1),
         )
-        
+
         await send_log(
             bot=self.bot,
             session=self.session,

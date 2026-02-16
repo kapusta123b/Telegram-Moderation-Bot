@@ -25,8 +25,11 @@ from utils.text import contains_bad_word
 moderation_router = Router()
 moderation_router.message.filter(ChatTypeFilter(["group", "supergroup"]))
 
+
 @moderation_router.message(Command("warn", "unwarn"), IsAdmin())
-async def warn_cmd(message: types.Message, bot: Bot, session: AsyncSession, command: CommandObject):
+async def warn_cmd(
+    message: types.Message, bot: Bot, session: AsyncSession, command: CommandObject
+):
     """
     Manual warning command for administrators to discipline users.
     """
@@ -34,36 +37,29 @@ async def warn_cmd(message: types.Message, bot: Bot, session: AsyncSession, comm
     if not message.reply_to_message:
         await message.reply(s.NOTICE_REPLY)
         return
-    
+
     action = command.command
 
     target_user = message.reply_to_message.from_user
     service = RestrictionService(bot, session)
 
-    if action == 'warn':
+    if action == "warn":
         result = await service.warn(
-            chat_id=message.chat.id,
-            user=target_user,
-            message=message.reply_to_message
+            chat_id=message.chat.id, user=target_user, message=message.reply_to_message
         )
     else:
         try:
             result = await service.unwarn(
-                message.chat.id,
-                target_user, 
-                message.reply_to_message
+                message.chat.id, target_user, message.reply_to_message
             )
         except ZeroCurrentWarns:
-            await message.reply(
-                text=s.ZERO_CURRENT_WARNS
-                )
+            await message.reply(text=s.ZERO_CURRENT_WARNS)
             return
 
     if result["status"] == "warned":
         await message.reply(
             text=s.ACTION_WARN_TO.format(
-                first_name=target_user.first_name,
-                current_warns=result["current_warns"]
+                first_name=target_user.first_name, current_warns=result["current_warns"]
             )
         )
 
@@ -74,15 +70,14 @@ async def warn_cmd(message: types.Message, bot: Bot, session: AsyncSession, comm
                 first_name=target_user.first_name,
                 warnings=MAX_WARNS,
                 duration=result["duration"],
-                mute_count=result["mute_count"]
+                mute_count=result["mute_count"],
             )
         )
 
     elif result["status"] == "unwarned":
         await message.reply(
             text=s.ACTION_UNWARN_TO.format(
-                first_name=target_user.first_name,
-                current_warns=result["current_warns"]
+                first_name=target_user.first_name, current_warns=result["current_warns"]
             )
         )
 
@@ -103,14 +98,14 @@ async def restriction_cmd(
     Unified handler for restriction commands (mute, ban, unmute, unban).
     Supports both reply to message and explicit User ID.
     """
-    
+
     if not message.reply_to_message and not command.args:
         await message.reply(s.NOT_REPLY_TO_MESSAGE)
         return
 
     action = command.command
     args = command.args.split() if command.args else []
-    
+
     # identify target user
     if message.reply_to_message:
         target_user = message.reply_to_message.from_user
@@ -119,7 +114,7 @@ async def restriction_cmd(
         if not args or not args[0].isdigit():
             await message.reply(s.INVALID_FORMAT)
             return
-        
+
         user_id = int(args[0])
         args = args[1:]
 
@@ -135,38 +130,56 @@ async def restriction_cmd(
     # parse common arguments
     extend = "set" in [a.lower() for a in args]
     args = [a for a in args if a.lower() != "set"]
-    
+
     until_date = None
     reason = None
-    
+
     if action in ("mute", "ban"):
         time_arg = args[0] if args else "permanent"
         until_date = parse_time(time_arg)
-        
+
         if until_date is None:
             await message.reply(s.INVALID_FORMAT)
             return
-        
+
         if until_date == "permanent":
             until_date = None
-            
+
         reason = " ".join(args[1:]) if len(args) > 1 else None
 
     service = RestrictionService(bot, session)
-    
+
     try:
         if action == "mute":
-            result = await service.mute(message.chat.id, target_user, until_date, reason, extend, message.reply_to_message)
-        
+            result = await service.mute(
+                message.chat.id,
+                target_user,
+                until_date,
+                reason,
+                extend,
+                message.reply_to_message,
+            )
+
         elif action == "ban":
-            result = await service.ban(message.chat.id, target_user, until_date, reason, extend, message.reply_to_message)
-        
+            result = await service.ban(
+                message.chat.id,
+                target_user,
+                until_date,
+                reason,
+                extend,
+                message.reply_to_message,
+            )
+
         elif action == "unmute":
-            result = await service.unmute(message.chat.id, target_user, message.reply_to_message)
-        
+            result = await service.unmute(
+                message.chat.id, target_user, message.reply_to_message
+            )
+
         elif action == "unban":
-            result = await service.unban(message.chat.id, target_user, message.reply_to_message)
-            
+            result = await service.unban(
+                message.chat.id, target_user, message.reply_to_message
+            )
+
     except AlreadyRestrictedError:
         await message.reply(s.ALREADY_MUTED)
         return
@@ -199,7 +212,7 @@ async def restriction_cmd(
         "mute": "muted",
         "ban": "banned",
         "unmute": "unmuted",
-        "unban": "unbanned"
+        "unban": "unbanned",
     }
 
     await message.reply(
@@ -234,26 +247,22 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
     member = await bot.get_chat_member(message.chat.id, user.id)
 
     if member.status in ("creator", "administrator"):
-        await message.reply(
-            s.ADMIN_NOTICE
-        )
+        await message.reply(s.ADMIN_NOTICE)
 
         return
 
     service = RestrictionService(bot, session)
     result = await service.warn(
-        chat_id=message.chat.id,
-        user=user,
-        message=message,
-        reason="Profanity filter"
+        chat_id=message.chat.id, user=user, message=message, reason="Profanity filter"
     )
 
     if result["status"] == "warned":
-        logger.info(f"Message from {user.id} in chat {message.chat.id} deleted (bad word). Warnings: {result['current_warns']}/{MAX_WARNS}")
+        logger.info(
+            f"Message from {user.id} in chat {message.chat.id} deleted (bad word). Warnings: {result['current_warns']}/{MAX_WARNS}"
+        )
         await message.reply(
             text=s.SENT_AUTO_WARN.format(
-                first_name=user.first_name,
-                current_warns=result["current_warns"]
+                first_name=user.first_name, current_warns=result["current_warns"]
             )
         )
     else:
@@ -263,7 +272,7 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
                 first_name=user.first_name,
                 warnings=MAX_WARNS,
                 duration=result["duration"],
-                mute_count=result["mute_count"]
+                mute_count=result["mute_count"],
             )
         )
 
@@ -272,4 +281,6 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
     try:
         await message.delete()
     except Exception:
-        logger.debug(f"Could not delete message with profanity in chat {message.chat.id}")
+        logger.debug(
+            f"Could not delete message with profanity in chat {message.chat.id}"
+        )
