@@ -37,14 +37,16 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 ## ✨ Key Features
 
 - **🛡️ Join Captcha**: Automated anti-bot verification for new members with a 5-minute timeout and 24-hour ban for failures.
-- **🚀 Automated Moderation**: Modular routers for real-time scanning of messages and edits for prohibited keywords.
+- **🚀 Automated Moderation**: Modular routers for real-time scanning of messages and **edits** for prohibited keywords and **external links**.
+- **🚫 Anti-Advertising**: Automatically detects and removes Telegram invitation links (`t.me/`) to prevent spam.
+- **📊 User Statistics**: Public command for users to track their own mutes, bans, and warning history.
 - **📜 Moderation Logs**: Dedicated logging system to track all administrative actions. Automatically **forwards violating messages** to the chosen channel as evidence.
 - **🔧 Modular Architecture**: Decoupled handlers for captcha, lists, moderation, reports, and system tasks for better maintainability.
 - **⚙️ Centralized Services**: Specialized logic layers for restrictions, history management, and automated warnings.
 - **🧹 System Cleanup**: Automatically removes "user joined" and "user left" system messages for a cleaner chat.
 - **💾 Persistent Storage**: SQLite database powered by **SQLAlchemy 2.0** to track violation history and bot configuration.
-- **⚠️ Smart Warning System**: Automatically issues warnings to violators (3/3 warnings lead to auto-mute).
-- **📈 Progressive Mutes**: Intelligent restriction system that scales based on history (1h -> 2.5h -> 4h -> 24h -> 3d -> 1.5x scaling).
+- **⚠️ Smart Warning System**: Automatically issues warnings to violators (default: 5/5 warnings lead to auto-mute).
+- **📈 Progressive Mutes**: Intelligent restriction system that scales based on history (1h -> 2.5h -> 4h -> 12h -> 1d -> 1.2x scaling).
 - **🛠️ Admin Toolkit**: Manual `/warn`, `/mute`, and `/ban` commands with custom durations, reasons, and ID support.
 
 ---
@@ -54,6 +56,7 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 ### 👤 Private Chat
 - `/start` — Start the bot and get an overview.
 - `/help` — Detailed guide on how to use the bot.
+- `/stats` — View your personal statistics across groups.
 - `/about` — Information about the bot's features and technical stack.
 - `/how_use_bot` — Step-by-step setup instructions.
 
@@ -62,16 +65,19 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 - `/unset_admin_chat` — Unset the current chat as the **Admin Log Channel**.
 - `/warn` — Issue a formal warning (Reply required).
 - `/unwarn` — Remove one warning from a user (Reply required).
-- `/mute [duration/ID] [set]` — Mute a user (Reply or User ID).
-- `/unmute` — Restore message permissions (Reply required).
-- `/ban [duration/ID] [set]` — Ban a user from the group (Reply or User ID).
+- `/mute [duration/ID] [set] [reason]` — Mute a user (Reply or User ID).
+- `/unmute [ID]` — Restore message permissions (Reply or User ID).
+- `/ban [duration/ID] [set] [reason]` — Ban a user from the group (Reply or User ID).
 - `/unban [ID]` — Lift a ban (Reply or User ID).
-- `/mute_list` — View history of mutes (Paginated).
-- `/ban_list` — View history of bans (Paginated).
+- `/mute_list [current]` — View history of mutes (Paginated).
+- `/ban_list [current]` — View history of bans (Paginated).
 - `/warn_list` — View history of warns (Paginated).
+
+> **💡 Note:** Use the `current` argument with `/mute_list` or `/ban_list` to see only active restrictions.
 
 ### 🛡️ Public Group Commands
 - `/report` — Report a message to administrators (Reply required).
+- `/stats` — View your personal statistics in the current chat.
 
 > **💡 Time Formats:** `10m`, `1h`, `1d`, `1w`, or `permanent`.
 
@@ -98,6 +104,7 @@ graph TD
         H_REP[reports.py]
         H_SYS[system.py]
         H_PRIV[user_private.py]
+        H_USR[user.py]
     end
 
     subgraph Services[Business Logic]

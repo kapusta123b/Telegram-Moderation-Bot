@@ -248,9 +248,6 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
     if not content:
         return
 
-    if not contains_bad_word(content):
-        return
-
     if contains_link(content):
         await message.reply(s.ADS_MESSAGE)
 
@@ -261,6 +258,9 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
             logger.debug(
                 f"Could not delete message with profanity in chat {message.chat.id}"
             )
+
+    if not contains_bad_word(content):
+        return
 
     user = message.from_user
     member = await bot.get_chat_member(message.chat.id, user.id)

@@ -11,7 +11,7 @@ def get_mute_duration(mutes_count: int) -> timedelta:
     if mutes_count <= 5:
         return DEFAULT_MUTE_TIME.get(mutes_count, timedelta(hours=1))
 
-    base_time = timedelta(days=3).total_seconds()
+    base_time = timedelta(days=1).total_seconds()
     extra_mutes = mutes_count - 5
-    multiplier = 1.5**extra_mutes
+    multiplier = 1.2**extra_mutes
     return timedelta(seconds=base_time * multiplier)

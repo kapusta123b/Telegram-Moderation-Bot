@@ -96,7 +96,6 @@ MUTE_NO_RECORDS = "📋 <b>Mute History:</b> No records found."
 MUTE_HISTORY_HEADER = "🔇 <b>Mute History ({history_scope}):</b>\n\n"
 
 # warn_history section
-
 WARN_HISTORY_HEADER = "⚠️ <b>Warn History ({history_scope}):</b>\n\n"
 
 WARN_NO_RECORDS = "📋 <b>Warn History:</b> No records found."
@@ -121,6 +120,7 @@ ADMIN_NOTICE = "⚠️ <b>Admin Notice:</b> Please maintain professional languag
 SENT_AUTO_WARN = "⚠️ <b>Warning {current_warns}/{max_warns}:</b> <b>{first_name}</b>, please refrain from using prohibited language in this chat."
 
 ADS_MESSAGE = "⚠️ <b>Notice:</b> Advertising is prohibited in this channel."
+
 # captcha section
 VERIFICATION_TEXT = "🤖 <b>Verification:</b> Hello <b>{first_name}</b>, please confirm that you are not a robot to join the conversation!"
 
@@ -143,6 +143,16 @@ WELCOME_TEXT_GROUP = (
     "2. Add me as an admin\n"
     "3. Enable <b>Delete Messages</b> and <b>Ban Users</b> permissions\n\n"
     "Use /help in private to see all my features!"
+)
+
+# user_stats section
+STATS_TEXT = (
+    "📊 <b>User Statistics</b>\n\n"
+    "👤 <b>User ID:</b> <code>{user_id}</code>\n"
+    "🔇 <b>Mutes:</b> {count_mutes}\n"
+    "🚫 <b>Bans:</b> {count_bans}\n"
+    "⚠️ <b>Warnings:</b> {count_warns}\n"
+    "📅 <b>Join Date:</b> {join_date}"
 )
 
 # ---- user_private.py ----
@@ -168,12 +178,14 @@ ABOUT_TEXT = (
     "and manage violations in real-time.\n\n"
     "<b>Core Capabilities:</b>\n"
     "• <i>Join Captcha</i>: Anti-bot verification for new members (5m timeout).\n"
-    "• <i>Moderation Logs</i>: Track all actions in a dedicated channel using /admin_chat.\n"
+    "• <i>Moderation Logs</i>: Track all actions in a dedicated channel using /set_admin_chat.\n"
     "• <i>Centralized Services</i>: Robust logic for sanctions, history, and restrictions.\n"
     "• <i>Persistent Tracking</i>: All warnings, mutes, and bans are saved in a database.\n"
     "• <i>Real-time Scanning</i>: Automated filtering of messages and edits for profanity.\n"
+    "• <i>Anti-Advertising</i>: Automatic detection and removal of Telegram (t.me) invitation links.\n"
     "• <i>Automated Warning System</i>: {max_warns} warnings lead to an automatic progressive mute.\n"
     "• <i>Progressive Mutes</i>: Intelligent scaling of restrictions based on violation count.\n"
+    "• <i>User Statistics</i>: Users can check their restriction history with /stats.\n"
     "• <i>Manual Moderation</i>: Admins can use /warn, /mute, or /ban with flexible time formats.\n"
     "• <i>History Inspection</i>: Detailed records available via /warn_list, /mute_list, and /ban_list.\n\n"
     "I respect your administrators and ensure they retain full control while I handle "
@@ -186,7 +198,7 @@ CONFIG_TEXT = (
     "1. <b>Add the Bot</b> to your group chat.\n"
     "2. <b>Promote to Administrator</b> and ensure <i>Delete Messages</i> and "
     "<i>Ban Users</i> permissions are enabled.\n"
-    "3. <b>Set Log Channel</b>: Use <code>/admin_chat</code> in the group where you want to receive logs.\n"
+    "3. <b>Set Log Channel</b>: Use <code>/set_admin_chat</code> in the group where you want to receive logs.\n"
     "4. <b>Supergroup Activation</b>: Confirm your chat is a Supergroup to allow "
     "me to restrict members and use the captcha feature.\n\n"
     "Once configured, you can use commands by <b>replying</b> to messages or by providing a <b>User ID</b>. "
@@ -209,6 +221,7 @@ COMMANDS_TEXT = (
     "• /ban_list <code>[current]</code> - View history of bans (paginated).\n\n"
     "<b>User Commands:</b>\n"
     "• /report - Report a violation to admins (reply required).\n"
+    "• /stats - View your personal restriction statistics.\n"
     "• /about - Technical details and bot capabilities.\n"
     "• /how_use_bot - Step-by-step configuration guide.\n"
     "• /help - Display this help message.\n\n"

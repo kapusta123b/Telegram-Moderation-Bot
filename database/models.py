@@ -24,6 +24,8 @@ class User(Base):
     is_muted: Mapped[bool] = mapped_column(default=False)
     mute_duration: Mapped[datetime] = mapped_column(nullable=True)
 
+    join_date: Mapped[datetime] = mapped_column(nullable=True)
+
 
 
 class ChatConfig(Base):

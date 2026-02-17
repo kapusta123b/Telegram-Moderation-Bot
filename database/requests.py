@@ -17,9 +17,25 @@ async def create_user(session: AsyncSession, user_id, chat_id):
     user = await session.get(User, (user_id, chat_id))
 
     if not user:
-        new_user = User(id=user_id, chat_id=chat_id)
+        new_user = User(id=user_id, chat_id=chat_id, join_date=datetime.now())
         session.add(new_user)
         logger.info(f"New user {user_id} in chat {chat_id} created in database")
+
+
+async def get_user_stats(session: AsyncSession, user_id, chat_id):
+    """
+    Returns all user statistics for being in the chat
+    """
+
+    stats = await session.get(User, (user_id, chat_id))
+
+    return {
+        'user_id': stats.id,
+        'count_mutes': stats.count_mutes,
+        'count_bans': stats.count_bans,
+        'count_warns': stats.count_warns,
+        'join_date': stats.join_date.strftime('%Y-%m-%d %H:%M')
+    }
 
 
 async def add_warn(session: AsyncSession, user_id, chat_id):

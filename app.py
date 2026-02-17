@@ -14,6 +14,7 @@ from handlers.reports import reports_router
 from handlers.lists import lists_router
 from handlers.captcha import captcha_router
 from handlers.system import system_router
+from handlers.user import user_router
 
 from config.config import user_private_commands, admin_group_commands, ALLOWED_UPDATES
 
@@ -27,7 +28,7 @@ setup_logging()
 load_dotenv(".env")
 
 bot = Bot(
-    token=environ.get("BOT_TOKEN"),  # write your secret token in .env file
+    token=environ.get("BOT_TOKEN"), # write your secret bot token in .env file
     default=DefaultBotProperties(parse_mode=ParseMode.HTML),
 )
 
@@ -37,6 +38,7 @@ dp.include_routers(
     user_private_router,
     reports_router,
     lists_router,
+    user_router,
     moderation_router,
     captcha_router,
 )
