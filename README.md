@@ -68,6 +68,7 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 - `/unban [ID]` — Lift a ban (Reply or User ID).
 - `/mute_list` — View history of mutes (Paginated).
 - `/ban_list` — View history of bans (Paginated).
+- `/warn_list` — View history of warns (Paginated).
 
 ### 🛡️ Public Group Commands
 - `/report` — Report a message to administrators (Reply required).
