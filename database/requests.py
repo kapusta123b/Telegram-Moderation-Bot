@@ -200,9 +200,27 @@ async def set_log_chat(session: AsyncSession, group_id, log_chat_id):
         config = ChatConfig(group_id=group_id, log_chat_id=log_chat_id)
         session.add(config)
     else:
+        if config.log_chat_id == log_chat_id:
+            raise ValueError("Already configured for this chat")
         config.log_chat_id = log_chat_id
 
     logger.success(f"Log channel for group {group_id} set to {log_chat_id}")
+
+
+async def unset_log_chat(session: AsyncSession, group_id):
+    """
+    Removes the log chat configuration for a specific group.
+    """
+
+    config = await session.get(ChatConfig, group_id)
+
+    if config:
+        await session.delete(config)
+
+    else:
+        raise ValueError("Log chat not configured")
+
+    logger.success(f"Log channel for group {group_id} unset")
 
 
 async def get_log_chat(session: AsyncSession, group_id):
@@ -219,6 +237,10 @@ async def get_history_list(
     current: bool,
     status_arg: str | None,
 ):
+    """
+    Retrieves a list of records from the specified history model.
+    Optionally filters for currently active restrictions.
+    """
     query = select(model)
 
     if current and status_arg:

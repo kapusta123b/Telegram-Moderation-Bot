@@ -1,12 +1,15 @@
 from aiogram import types, Router, F
-from aiogram.filters import Command
+from aiogram.filters.command import CommandObject, Command
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import config.strings as s
-from database.requests import create_user, set_log_chat
+
+from database.requests import create_user, set_log_chat, unset_log_chat
+
 from filters.group_filters import IsAdmin
 from filters.chat_filters import ChatTypeFilter
+
 
 from loguru import logger
 
@@ -38,23 +41,39 @@ async def delete_system_message(message: types.Message, session: AsyncSession):
         logger.debug(f"Could not delete system message in chat {message.chat.id}")
 
 
-@system_router.message(Command("admin_chat"), IsAdmin())
-async def set_admin_chat(message: types.Message, session: AsyncSession):
+@system_router.message(Command("set_admin_chat", "unset_admin_chat"), IsAdmin())
+async def set_admin_chat(
+    message: types.Message, session: AsyncSession, command: CommandObject
+):
     """
-    This handler writes the chat.id to the database, which will be used to send admin logs.
+    This handler manages the admin log channel configuration.
     """
 
-    log_chat_id = message.chat.id
+    action = command.command
 
     try:
-        await set_log_chat(session, message.chat.id, log_chat_id)
-        await session.commit()
+        if action == "set_admin_chat":
+            await set_log_chat(session, message.chat.id, message.chat.id)
+            await message.reply(s.SUCCESS_SET_CHAT)
 
-        await message.reply(s.SUCCESS_SET_CHAT)
+        else:
+            await unset_log_chat(session, message.chat.id)
+            await message.reply(s.SUCCESS_UNSET_CHAT)
 
-    except ValueError:
-        await message.reply(s.ALREADY_CONFIGURED)
-        logger.info(f"Admin chat already configured for chat {message.chat.id}")
+    except ValueError as e:
+        if action == "set_admin_chat":
+            await message.reply(s.ALREADY_CONFIGURED)
+
+        else:
+            await message.reply(s.NOT_CONFIGURED)
+
+        logger.info(f"Admin chat {action} skipped: {e}")
+
+    except Exception:
+        logger.exception(f"Failed to {action} for chat {message.chat.id}")
+        await message.reply(s.SYSTEM_ERROR)
+
+    await session.commit()
 
 
 @system_router.my_chat_member()

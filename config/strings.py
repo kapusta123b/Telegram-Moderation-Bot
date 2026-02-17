@@ -4,6 +4,8 @@ DURATION_TEXT = "\n<b>Duration:</b> {duration}"
 
 REASON_LOG_TEXT = "\n<b>Reason:</b> {reason}"
 
+SYSTEM_ERROR = '🚨 <b>System Error:</b> something went wrong.'
+
 # send_log
 MODERATION_LOG = (
     "🛡 <b>Moderation Log</b>\n"
@@ -105,7 +107,13 @@ SUCCESS_SET_CHAT = (
     "✅ <b>Success:</b> This channel has been set as the <b>Admin Log Channel</b>."
 )
 
+SUCCESS_UNSET_CHAT = (
+    "✅ <b>Success:</b> This channel has been unset as the <b>Admin Log Channel</b>."
+)
+
 ALREADY_CONFIGURED = "⚠️ <b>Notice:</b> This channel is already configured for logs."
+
+NOT_CONFIGURED = "⚠️ <b>Notice:</b> This channel is not configured for logs."
 
 # auto_moderation section
 ADMIN_NOTICE = "⚠️ <b>Admin Notice:</b> Please maintain professional language."
@@ -186,7 +194,8 @@ CONFIG_TEXT = (
 COMMANDS_TEXT = (
     "<b>📜 Available Commands</b>\n\n"
     "<b>Group Administration:</b>\n"
-    "• /admin_chat - Set the current chat as the Admin Log Channel.\n"
+    "• /set_admin_chat - Set the current chat as the Admin Log Channel.\n"
+    "• /unset_admin_chat - Unset the current chat as the Admin Log Channel.\n"
     "• /warn - Issue a formal warning (reply required).\n"
     "• /unwarn - Remove one warning (reply required).\n"
     "• /mute <code>[time/ID] [set]</code> - Mute user (reply or ID required).\n"

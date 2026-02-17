@@ -1,7 +1,6 @@
-from typing import Literal
 from aiogram import types, Bot
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from services.warning_service import get_mute_duration
 from database.requests import (
