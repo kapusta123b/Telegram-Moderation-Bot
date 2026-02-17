@@ -1,4 +1,4 @@
-from aiogram import F, Bot, types, Router
+from aiogram import types, Router
 from aiogram.filters import Command
 from aiogram.filters.command import CommandObject
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -44,7 +44,9 @@ def get_pagination_kb(action: str, page: int, has_next: bool, has_prev: bool):
 async def list_cmd(
     message: types.Message, session: AsyncSession, command: CommandObject
 ):
-    """The main handler for the /ban_list, /mute_list and /warn_list commands"""
+    """
+    The main handler for the /ban_list, /mute_list and /warn_list commands
+    """
 
     action = command.command
 

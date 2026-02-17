@@ -1,7 +1,11 @@
 import math
+
 from html import escape
+
 from typing import Callable
+
 from aiogram.filters.callback_data import CallbackData
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.strings import (
@@ -10,6 +14,7 @@ from config.strings import (
     LIST_RECORD,
     WARN_HISTORY_HEADER,
 )
+
 from database.models import BanHistory, MuteHistory, WarnHistory
 from database.requests import get_history_list
 
@@ -36,6 +41,7 @@ class HistoryService:
         self.session = session
         self.history_scope = history_scope
 
+
     async def _get_formatted_history(
         self,
         fetch_func: Callable,
@@ -49,6 +55,7 @@ class HistoryService:
         """
         Internal helper to fetch, sort, and format history records with pagination.
         """
+
         records = await fetch_func(
             session=self.session, current=current, model=model, status=status_arg
         )
@@ -87,10 +94,12 @@ class HistoryService:
             "total_pages": total_pages,
         }
 
+
     async def ban_history(self, current: bool, page: int = 1):
         """
         Retrieves a paginated list of ban history records.
         """
+
         return await self._get_formatted_history(
             fetch_func=get_history_list,
             model=BanHistory,
@@ -101,10 +110,12 @@ class HistoryService:
             current=current,
         )
 
+
     async def mute_history(self, current: bool, page: int = 1):
         """
         Retrieves a paginated list of mute history records.
         """
+
         return await self._get_formatted_history(
             fetch_func=get_history_list,
             model=MuteHistory,
@@ -115,10 +126,12 @@ class HistoryService:
             current=current,
         )
 
+
     async def warn_history(self, current: bool, page: int = 1):
         """
         Retrieves a paginated list of warn history records.
         """
+        
         return await self._get_formatted_history(
             fetch_func=get_history_list,
             model=WarnHistory,

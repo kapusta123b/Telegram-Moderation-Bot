@@ -1,8 +1,12 @@
 from aiogram import types, Bot
+
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from datetime import datetime
 
 from services.warning_service import get_mute_duration
+from services.log_service import send_log
+
 from database.requests import (
     add_mute,
     add_ban,
@@ -12,27 +16,29 @@ from database.requests import (
     unban_user,
     unwarn_user,
 )
+
 from config.config import MAX_WARNS, permissions_mute, permissions_unmute
-import config.strings as s
 
 from loguru import logger
-from services.log_service import send_log
-
 
 class AlreadyRestrictedError(Exception):
     pass
+
 
 
 class NotRestrictedError(Exception):
     pass
 
 
+
 class AlreadyBannedError(Exception):
     pass
 
 
+
 class ZeroCurrentWarns(Exception):
     pass
+
 
 
 class RestrictionService:
@@ -40,15 +46,18 @@ class RestrictionService:
         self.bot = bot
         self.session = session
 
+
     async def _get_target_member(self, chat_id: int, target_id: int):
         """
         Internal helper to retrieve chat member info and verify they aren't an admin.
         """
+
         target = await self.bot.get_chat_member(chat_id, target_id)
         if target.status in ("administrator", "creator"):
             raise PermissionError("Cannot restrict admin")
 
         return target
+
 
     async def mute(
         self,
@@ -62,6 +71,7 @@ class RestrictionService:
         """
         Mutes a user in the specified chat and logs the action.
         """
+
         target = await self._get_target_member(chat_id, user.id)
 
         is_muted = target.status == "restricted" and not getattr(
@@ -110,12 +120,14 @@ class RestrictionService:
 
         return {"status": "muted", "until_date": until_date}
 
+
     async def unmute(
         self, chat_id: int, user: types.User, message: types.Message | None = None
     ):
         """
         Restores message permissions for a restricted user.
         """
+
         target = await self._get_target_member(chat_id, user.id)
 
         if target.status != "restricted":  # if target not muted
@@ -138,6 +150,7 @@ class RestrictionService:
 
         return {"status": "unmuted"}
 
+
     async def ban(
         self,
         chat_id: int,
@@ -150,6 +163,7 @@ class RestrictionService:
         """
         Bans a user from the chat and logs the action.
         """
+
         target = await self._get_target_member(chat_id, user.id)
 
         if target.status in ("kicked", "left") and not extend:
@@ -194,12 +208,14 @@ class RestrictionService:
 
         return {"status": "banned", "until_date": until_date}
 
+
     async def unban(
         self, chat_id: int, user: types.User, message: types.Message | None = None
     ):
         """
         Lifts a ban for a user, allowing them to rejoin the chat.
         """
+
         # we don't check target status here as they might not be in the chat
         await self.bot.unban_chat_member(
             chat_id=chat_id, user_id=user.id, only_if_banned=True
@@ -217,6 +233,7 @@ class RestrictionService:
         )
 
         return {"status": "unbanned"}
+
 
     async def warn(
         self,
@@ -285,6 +302,7 @@ class RestrictionService:
             "mute_count": mutes,
             "until_date": until_date,
         }
+
 
     async def unwarn(
         self,

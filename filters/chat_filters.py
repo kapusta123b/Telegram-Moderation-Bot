@@ -1,5 +1,5 @@
-from aiogram.filters import Filter
 from aiogram import types
+from aiogram.filters import Filter
 
 
 class ChatTypeFilter(Filter):

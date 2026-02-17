@@ -160,7 +160,6 @@ KB_HOW_USE_BOT = "How use the bot?"
 KB_ALL_COMMANDS = "View all commands"
 
 # about_bot section
-
 ABOUT_TEXT = (
     "<b>🛡️ Professional Moderation Service</b>\n\n"
     "I am designed to act as a silent guardian for your chat. By utilizing a modular "

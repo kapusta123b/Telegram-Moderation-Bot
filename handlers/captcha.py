@@ -1,4 +1,5 @@
 from asyncio import sleep
+
 from aiogram import types, Router, F
 from aiogram.filters import ChatMemberUpdatedFilter, JOIN_TRANSITION
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -6,7 +7,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import config.strings as s
+
 from services.captcha_service import CaptchaService
+
 from filters.chat_filters import ChatTypeFilter
 
 captcha_router = Router()

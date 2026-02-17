@@ -70,3 +70,6 @@ ALLOWED_UPDATES = [
 
 # change it if you want more/less warnings before muting the user
 MAX_WARNS = 5
+
+
+DB_URL = "sqlite+aiosqlite:///db.sqlite3"

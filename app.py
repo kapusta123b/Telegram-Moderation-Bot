@@ -4,8 +4,6 @@ from os import environ
 
 from dotenv import load_dotenv
 
-load_dotenv(".env")
-
 from config.logging_config import setup_logging
 from database.engine import create_db, session_maker
 from middlewares.db import DbSessionMiddleware
@@ -26,6 +24,7 @@ from aiogram import Bot, Dispatcher, types
 from loguru import logger
 
 setup_logging()
+load_dotenv(".env")
 
 bot = Bot(
     token=environ.get("BOT_TOKEN"),  # write your secret token in .env file
@@ -41,7 +40,6 @@ dp.include_routers(
     moderation_router,
     captcha_router,
 )
-
 
 async def main():
     await create_db()

@@ -8,6 +8,7 @@ def parse_time(time_str: str) -> datetime | str | None:
     Parses a time string (for example, '1m') and returns a datetime object or "permanent".
     Uses a dictionary to map suffixes (m, h, d, w) to timedelta arguments.
     """
+
     if time_str == "permanent":
         return "permanent"
 

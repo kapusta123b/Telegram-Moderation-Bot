@@ -7,6 +7,7 @@ class Base(DeclarativeBase):
     pass
 
 
+
 class User(Base):
     __tablename__ = "user"
 
@@ -24,11 +25,13 @@ class User(Base):
     mute_duration: Mapped[datetime] = mapped_column(nullable=True)
 
 
+
 class ChatConfig(Base):
     __tablename__ = "chat_config"
 
     group_id: Mapped[int] = mapped_column(primary_key=True)
     log_chat_id: Mapped[int] = mapped_column(nullable=True)
+
 
 
 class BanHistory(Base):
@@ -50,6 +53,7 @@ class BanHistory(Base):
     reason: Mapped[str] = mapped_column(nullable=True)
 
 
+
 class MuteHistory(Base):
     __tablename__ = "mute_history"
 
@@ -67,6 +71,7 @@ class MuteHistory(Base):
     duration: Mapped[str] = mapped_column(nullable=True)
 
     reason: Mapped[str] = mapped_column(nullable=True)
+
 
 
 class WarnHistory(Base):

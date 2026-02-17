@@ -13,6 +13,7 @@ async def create_user(session: AsyncSession, user_id, chat_id):
     """
     Ensures a user exists in the database. Creates a new record if not found.
     """
+    
     user = await session.get(User, (user_id, chat_id))
 
     if not user:
@@ -25,6 +26,7 @@ async def add_warn(session: AsyncSession, user_id, chat_id):
     """
     Increments the warning count for a user. Triggers mute status if limit reached.
     """
+
     user = await session.get(User, (user_id, chat_id))
 
     if not user:
@@ -59,6 +61,7 @@ async def add_mute(
     """
     Logs a new mute action to the database history.
     """
+
     user = await session.get(User, (user_id, chat_id))
     if not user:
         user = User(id=user_id, chat_id=chat_id)
@@ -227,6 +230,7 @@ async def get_log_chat(session: AsyncSession, group_id):
     """
     Retrieves the configured admin log channel ID for a specific group.
     """
+
     config = await session.get(ChatConfig, group_id)
     return config.log_chat_id if config else None
 
@@ -241,6 +245,7 @@ async def get_history_list(
     Retrieves a list of records from the specified history model.
     Optionally filters for currently active restrictions.
     """
+
     query = select(model)
 
     if current and status_arg:

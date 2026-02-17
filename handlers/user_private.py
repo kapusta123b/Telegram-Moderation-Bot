@@ -1,5 +1,8 @@
 from aiogram import types, Router, F
 from aiogram.filters import CommandStart, Command
+
+from filters.chat_filters import ChatTypeFilter
+
 from config.strings import (
     ABOUT_TEXT,
     COMMANDS_TEXT,
@@ -9,7 +12,7 @@ from config.strings import (
     KB_INFO_BOT,
     WELCOME_TEXT_PRIVATE,
 )
-from filters.chat_filters import ChatTypeFilter
+
 from loguru import logger
 
 user_private_router = Router()
