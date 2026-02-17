@@ -18,20 +18,20 @@ MODERATION_LOG = (
 # warn section
 ACCESS_RESTRICTED = (
     "🚫 <b>Access Restricted:</b> User <b>{first_name}</b> has reached "
-    "the limit of <b>{warnings}/3 warnings</b>.\n"
+    "the limit of <b>{warnings}/{max_warns} warnings</b>.\n"
     "<i>A {duration} restriction has been applied (Mute #{mute_count}).</i>"
 )
 
 ACTION_WARN_TO = (
     "🔘 <b>Action:</b> Warning issued to <b>{first_name}</b>.\n"
-    "📊 <b>Total Warnings:</b> {current_warns}/3"
+    "📊 <b>Total Warnings:</b> {current_warns}/{max_warns}"
 )
 
-ZERO_CURRENT_WARNS = "ZERO WARNS ИДИ В ЖОПУ"
+ZERO_CURRENT_WARNS = "ℹ️ <b>Info:</b> This user has no active warnings."
 
 ACTION_UNWARN_TO = (
     "🔘 <b>Action:</b> Unwarning issued to <b>{first_name}</b>.\n"
-    "📊 <b>Total Warnings:</b> {current_warns}/3"
+    "📊 <b>Total Warnings:</b> {current_warns}/{max_warns}"
 )
 
 NOTICE_REPLY = "⚠️ <b>Notice:</b> This command must be used in a reply."
@@ -118,8 +118,9 @@ NOT_CONFIGURED = "⚠️ <b>Notice:</b> This channel is not configured for logs.
 # auto_moderation section
 ADMIN_NOTICE = "⚠️ <b>Admin Notice:</b> Please maintain professional language."
 
-SENT_AUTO_WARN = "⚠️ <b>Warning {current_warns}/3:</b> <b>{first_name}</b>, please refrain from using prohibited language in this chat."
+SENT_AUTO_WARN = "⚠️ <b>Warning {current_warns}/{max_warns}:</b> <b>{first_name}</b>, please refrain from using prohibited language in this chat."
 
+ADS_MESSAGE = "⚠️ <b>Notice:</b> Advertising is prohibited in this channel."
 # captcha section
 VERIFICATION_TEXT = "🤖 <b>Verification:</b> Hello <b>{first_name}</b>, please confirm that you are not a robot to join the conversation!"
 
@@ -135,7 +136,7 @@ VERIFICATION_NOT_FOR_YOU = "⚠️ This verification is not for you!"
 WELCOME_TEXT_GROUP = (
     "🛡 <b>Profanity Filter Bot</b>\n\n"
     "I will automatically monitor this chat for prohibited language. "
-    "Users receive warnings, and after <b>3/3</b> warnings, they are restricted for 1 hour.\n\n"
+    "Users receive warnings, and after <b>{max_warns}/{max_warns}</b> warnings, they are restricted.\n\n"
     "<b>Setup:</b>\n"
     "To function properly, I need administrator rights:\n"
     "1. Open Group Settings > <b>Administrators</b>\n"
@@ -169,11 +170,12 @@ ABOUT_TEXT = (
     "• <i>Join Captcha</i>: Anti-bot verification for new members (5m timeout).\n"
     "• <i>Moderation Logs</i>: Track all actions in a dedicated channel using /admin_chat.\n"
     "• <i>Centralized Services</i>: Robust logic for sanctions, history, and restrictions.\n"
-    "• <i>Persistent Tracking</i>: All warnings and mutes are saved in a database.\n"
-    "• <i>Real-time Scanning</i>: Automated filtering of messages and edits.\n"
-    "• <i>Automated Warning System</i>: (3/3 warnings lead to auto-mute).\n"
-    "• <i>Progressive Mutes</i>: Intelligent scaling of restrictions.\n"
-    "• <i>Manual Moderation</i>: Admins can use /warn, /mute, or /ban.\n\n"
+    "• <i>Persistent Tracking</i>: All warnings, mutes, and bans are saved in a database.\n"
+    "• <i>Real-time Scanning</i>: Automated filtering of messages and edits for profanity.\n"
+    "• <i>Automated Warning System</i>: {max_warns} warnings lead to an automatic progressive mute.\n"
+    "• <i>Progressive Mutes</i>: Intelligent scaling of restrictions based on violation count.\n"
+    "• <i>Manual Moderation</i>: Admins can use /warn, /mute, or /ban with flexible time formats.\n"
+    "• <i>History Inspection</i>: Detailed records available via /warn_list, /mute_list, and /ban_list.\n\n"
     "I respect your administrators and ensure they retain full control while I handle "
     "the routine moderation tasks."
 )
@@ -187,7 +189,8 @@ CONFIG_TEXT = (
     "3. <b>Set Log Channel</b>: Use <code>/admin_chat</code> in the group where you want to receive logs.\n"
     "4. <b>Supergroup Activation</b>: Confirm your chat is a Supergroup to allow "
     "me to restrict members and use the captcha feature.\n\n"
-    "Once configured, you can use commands by <b>replying</b> to messages or by providing a <b>User ID</b>."
+    "Once configured, you can use commands by <b>replying</b> to messages or by providing a <b>User ID</b>. "
+    "Admins can also inspect moderation history using <code>/warn_list</code>, <code>/mute_list</code>, or <code>/ban_list</code>."
 )
 
 COMMANDS_TEXT = (
@@ -197,17 +200,22 @@ COMMANDS_TEXT = (
     "• /unset_admin_chat - Unset the current chat as the Admin Log Channel.\n"
     "• /warn - Issue a formal warning (reply required).\n"
     "• /unwarn - Remove one warning (reply required).\n"
-    "• /mute <code>[time/ID] [set]</code> - Mute user (reply or ID required).\n"
-    "• /unmute - Unmute user (reply required).\n"
-    "• /ban <code>[time/ID] [set]</code> - Ban user (reply or ID required).\n"
+    "• /warn_list - View warning history for the group.\n"
+    "• /mute <code>[time/ID] [set] [reason]</code> - Mute user (reply or ID required).\n"
+    "• /unmute <code>[ID]</code> - Unmute user (reply or ID required).\n"
+    "• /ban <code>[time/ID] [set] [reason]</code> - Ban user (reply or ID required).\n"
     "• /unban <code>[ID]</code> - Unban user (reply or ID required).\n"
-    "• /mute_list - View history of mutes (paginated).\n"
-    "• /ban_list - View history of bans (paginated).\n\n"
+    "• /mute_list <code>[current]</code> - View history of mutes (paginated).\n"
+    "• /ban_list <code>[current]</code> - View history of bans (paginated).\n\n"
     "<b>User Commands:</b>\n"
-    "• /report - Report a violation to admins (reply required).\n\n"
+    "• /report - Report a violation to admins (reply required).\n"
+    "• /about - Technical details and bot capabilities.\n"
+    "• /how_use_bot - Step-by-step configuration guide.\n"
+    "• /help - Display this help message.\n\n"
     "<b>Time Formats:</b>\n"
     "<code>10m</code>, <code>1h</code>, <code>1d</code>, <code>1w</code>, <code>permanent</code>\n\n"
     "<b>Arguments:</b>\n"
-    "• <code>set</code> - Use this to update or extend the duration for a user who is already restricted.\n\n"
+    "• <code>current</code> - Use with <code>/mute_list</code> or <code>/ban_list</code> to see only active restrictions.\n"
+    "• <code>set</code> - Use with <code>/mute</code> or <code>/ban</code> to update or extend the duration for a user who is already restricted.\n\n"
     "<b>Usage Note:</b> Admin commands require the bot to have 'Ban Users' privileges."
 )

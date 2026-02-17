@@ -1,10 +1,11 @@
 from string import punctuation
 
+import re
+
 from config.config import BAD_WORDS_FILE
 
 with open(BAD_WORDS_FILE, encoding="utf-8") as f:
     BAD_WORDS = {line.strip().lower() for line in f if line.strip()}
-
 
 def normalize(text: str) -> str:
     """
@@ -29,4 +30,13 @@ def contains_bad_word(text: str) -> bool:
     for bad_word in BAD_WORDS:
         if bad_word in normalized:
             return True
+        
     return False
+
+
+def contains_link(text: str) -> bool:
+    pattern = r'(https?://)?t\.me/[^\s]+'
+
+    matches = re.findall(pattern, text)
+    
+    return matches

@@ -4,6 +4,7 @@ from aiogram.filters.command import CommandObject, Command
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import config.strings as s
+from config.config import MAX_WARNS
 
 from database.requests import create_user, set_log_chat, unset_log_chat
 
@@ -80,4 +81,6 @@ async def set_admin_chat(
 async def on_bot_added_to_group(event: types.ChatMemberUpdated):
     if event.new_chat_member.status in ("member", "administrator"):
         logger.info(f"Bot added to chat {event.chat.id} ({event.chat.title})")
-        await event.bot.send_message(chat_id=event.chat.id, text=s.WELCOME_TEXT_GROUP)
+        await event.bot.send_message(
+            chat_id=event.chat.id, text=s.WELCOME_TEXT_GROUP.format(max_warns=MAX_WARNS)
+        )

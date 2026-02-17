@@ -21,7 +21,7 @@ from services.restriction_service import (
 )
 
 from utils.time import parse_time
-from utils.text import contains_bad_word
+from utils.text import contains_bad_word, contains_link
 
 moderation_router = Router()
 moderation_router.message.filter(ChatTypeFilter(["group", "supergroup"]))
@@ -60,7 +60,9 @@ async def warn_cmd(
     if result["status"] == "warned":
         await message.reply(
             text=s.ACTION_WARN_TO.format(
-                first_name=target_user.first_name, current_warns=result["current_warns"]
+                first_name=target_user.first_name,
+                current_warns=result["current_warns"],
+                max_warns=MAX_WARNS,
             )
         )
 
@@ -70,6 +72,7 @@ async def warn_cmd(
             text=s.ACCESS_RESTRICTED.format(
                 first_name=target_user.first_name,
                 warnings=MAX_WARNS,
+                max_warns=MAX_WARNS,
                 duration=result["duration"],
                 mute_count=result["mute_count"],
             )
@@ -78,7 +81,9 @@ async def warn_cmd(
     elif result["status"] == "unwarned":
         await message.reply(
             text=s.ACTION_UNWARN_TO.format(
-                first_name=target_user.first_name, current_warns=result["current_warns"]
+                first_name=target_user.first_name,
+                current_warns=result["current_warns"],
+                max_warns=MAX_WARNS,
             )
         )
 
@@ -234,15 +239,28 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
     """
     Main message filter that scans for profanity and manages warnings/mutes.
     """
+
     if message.from_user.is_bot:
         return
 
     content = message.text or message.caption
+
     if not content:
         return
 
     if not contains_bad_word(content):
         return
+
+    if contains_link(content):
+        await message.reply(s.ADS_MESSAGE)
+
+        try:
+            await message.delete()
+
+        except Exception:
+            logger.debug(
+                f"Could not delete message with profanity in chat {message.chat.id}"
+            )
 
     user = message.from_user
     member = await bot.get_chat_member(message.chat.id, user.id)
@@ -263,7 +281,9 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
         )
         await message.reply(
             text=s.SENT_AUTO_WARN.format(
-                first_name=user.first_name, current_warns=result["current_warns"]
+                first_name=user.first_name,
+                current_warns=result["current_warns"],
+                max_warns=MAX_WARNS,
             )
         )
     else:
@@ -272,6 +292,7 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
             text=s.ACCESS_RESTRICTED.format(
                 first_name=user.first_name,
                 warnings=MAX_WARNS,
+                max_warns=MAX_WARNS,
                 duration=result["duration"],
                 mute_count=result["mute_count"],
             )
@@ -281,6 +302,7 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
 
     try:
         await message.delete()
+
     except Exception:
         logger.debug(
             f"Could not delete message with profanity in chat {message.chat.id}"

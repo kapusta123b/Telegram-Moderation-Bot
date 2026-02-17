@@ -3,6 +3,7 @@ from aiogram.filters import CommandStart, Command
 
 from filters.chat_filters import ChatTypeFilter
 
+from config.config import MAX_WARNS
 from config.strings import (
     ABOUT_TEXT,
     COMMANDS_TEXT,
@@ -18,13 +19,13 @@ from loguru import logger
 user_private_router = Router()
 user_private_router.message.filter(ChatTypeFilter(["private"]))
 
-
 @user_private_router.message(CommandStart())
 async def start_cmd(message: types.Message):
     """
     Handler for the /start command in private messages.
     Provides a welcome message and navigation keyboard.
     """
+
     logger.info(f"User {message.from_user.id} started bot in private")
 
     text = WELCOME_TEXT_PRIVATE.format(full_name=message.from_user.full_name)
@@ -47,7 +48,8 @@ async def about_cmd(message: types.Message):
     Handler for the /about command or information button.
     Displays technical details and bot capabilities.
     """
-    await message.reply(text=ABOUT_TEXT)
+    
+    await message.reply(text=ABOUT_TEXT.format(max_warns=MAX_WARNS))
 
 
 @user_private_router.message(F.text.lower() == "how use the bot?")
@@ -57,6 +59,7 @@ async def how_to_use_cmd(message: types.Message):
     Handler for the setup instructions command or button.
     Provides step-by-step configuration guide.
     """
+    
     await message.reply(text=CONFIG_TEXT)
 
 
@@ -67,4 +70,5 @@ async def commands_cmd(message: types.Message):
     Handler for the /help command or view commands button.
     Lists all available commands and their usage.
     """
+    
     await message.reply(text=COMMANDS_TEXT)
