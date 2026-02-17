@@ -39,13 +39,13 @@ class CaptchaService:
 
     async def fail_captcha(self, chat: types.Chat, user: types.User):
         """
-        Bans the user for 24 hours if they fail to pass the captcha in time.
+        Bans the user for 1 hour if they fail to pass the captcha in time.
         """
 
         await self.bot.ban_chat_member(
             chat_id=chat.id,
             user_id=user.id,
-            until_date=datetime.now() + timedelta(days=1),
+            until_date=datetime.now() + timedelta(hours=1),
         )
 
         await send_log(
@@ -54,6 +54,6 @@ class CaptchaService:
             chat=chat,
             user=user,
             action="Banned (Captcha Failed)",
-            duration="24 hours",
+            duration="1 hour",
         )
         logger.info(f"User {user.id} failed captcha in chat {chat.id}")

@@ -36,7 +36,7 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 
 ## ✨ Key Features
 
-- **🛡️ Join Captcha**: Automated anti-bot verification for new members with a 5-minute timeout and 24-hour ban for failures.
+- **🛡️ Join Captcha**: Automated anti-bot verification for new members with a 5-minute timeout and 1 hour ban for failures.
 - **🚀 Automated Moderation**: Modular routers for real-time scanning of messages and **edits** for prohibited keywords and **external links**.
 - **🚫 Anti-Advertising**: Automatically detects and removes Telegram invitation links (`t.me/`) to prevent spam.
 - **📊 User Statistics**: Public command for users to track their own mutes, bans, and warning history.
