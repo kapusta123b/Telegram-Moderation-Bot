@@ -17,6 +17,7 @@ class User(Base):
     count_mutes: Mapped[int] = mapped_column(nullable=True, default=0)
     count_warns: Mapped[int] = mapped_column(nullable=True, default=0)
     count_bans: Mapped[int] = mapped_column(nullable=True, default=0)
+    count_messages: Mapped[int] = mapped_column(default=0)
 
     is_banned: Mapped[bool] = mapped_column(default=False)
     ban_duration: Mapped[datetime] = mapped_column(nullable=True)

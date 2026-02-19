@@ -9,7 +9,7 @@ from sqlalchemy import select, or_
 from loguru import logger
 
 
-async def create_user(session: AsyncSession, user_id, chat_id):
+async def create_user(session: AsyncSession, user_id: int | None, chat_id: int | None):
     """
     Ensures a user exists in the database. Creates a new record if not found.
     """
@@ -22,7 +22,7 @@ async def create_user(session: AsyncSession, user_id, chat_id):
         logger.info(f"New user {user_id} in chat {chat_id} created in database")
 
 
-async def get_user_stats(session: AsyncSession, user_id, chat_id):
+async def get_user_stats(session: AsyncSession, user_id: int | None, chat_id: int | None):
     """
     Returns all user statistics for being in the chat
     """
@@ -34,11 +34,12 @@ async def get_user_stats(session: AsyncSession, user_id, chat_id):
         'count_mutes': stats.count_mutes,
         'count_bans': stats.count_bans,
         'count_warns': stats.count_warns,
-        'join_date': stats.join_date.strftime('%Y-%m-%d %H:%M')
+        'join_date': stats.join_date.strftime('%Y-%m-%d %H:%M'),
+        'count_messages': stats.count_messages
     }
 
 
-async def add_warn(session: AsyncSession, user_id, chat_id):
+async def add_warn(session: AsyncSession, user_id: int, chat_id: int):
     """
     Increments the warning count for a user. Triggers mute status if limit reached.
     """
@@ -255,7 +256,7 @@ async def get_history_list(
     session: AsyncSession,
     model,
     current: bool,
-    status_arg: str | None,
+    status: str | None,
 ):
     """
     Retrieves a list of records from the specified history model.
@@ -264,14 +265,14 @@ async def get_history_list(
 
     query = select(model)
 
-    if current and status_arg:
+    if current and status:
         duration_field = (
-            User.mute_duration if status_arg == "is_muted" else User.ban_duration
+            User.mute_duration if status == "is_muted" else User.ban_duration
         )
         query = query.join(
             User, (model.user_id == User.id) & (model.chat_id == User.chat_id)
         ).where(
-            getattr(User, status_arg) == True,
+            getattr(User, status) == True,
             or_(duration_field == None, duration_field > datetime.now()),
         )
 

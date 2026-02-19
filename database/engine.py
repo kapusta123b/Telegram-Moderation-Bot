@@ -4,7 +4,7 @@ from database.models import Base
 
 from config.config import DB_URL
 
-engine = create_async_engine(DB_URL, echo=True)
+engine = create_async_engine(DB_URL, echo=False)
 
 session_maker = async_sessionmaker(
     bind=engine, class_=AsyncSession, expire_on_commit=False

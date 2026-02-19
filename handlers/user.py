@@ -26,6 +26,7 @@ async def stats_cmd(message: types.Message, session: AsyncSession):
     await message.reply(
         STATS_TEXT.format(
             user_id=stats["user_id"],
+            count_messages=stats["count_messages"],
             count_mutes=stats["count_mutes"],
             count_bans=stats["count_bans"],
             count_warns=stats["count_warns"],

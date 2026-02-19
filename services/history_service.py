@@ -76,14 +76,15 @@ class HistoryService:
 
         for record in page_records:
             date = record.time.strftime("%Y-%m-%d %H:%M")
-            reason_text = escape(record.reason) if record.reason else "None"
+            reason_text = escape(record.reason) if model != WarnHistory and record.reason else "None"
             name_text = escape(record.name) if record.name else "Unknown"
+            duration = record.duration if model != WarnHistory and record.duration else None
 
             text += LIST_RECORD.format(
                 name=name_text,
                 user_id=record.user_id,
                 date=date,
-                duration=record.duration,
+                duration=duration,
                 reason=reason_text,
             )
 

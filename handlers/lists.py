@@ -50,7 +50,7 @@ async def list_cmd(
 
     action = command.command
 
-    current = "current" in [a.lower() for a in command.args]
+    current = "current" in [a.lower() for a in command.args] if command.args else False
 
     history_scope = "Current users history" if current else "Full history"
 

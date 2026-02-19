@@ -16,7 +16,7 @@ from handlers.captcha import captcha_router
 from handlers.system import system_router
 from handlers.user import user_router
 
-from config.config import user_private_commands, admin_group_commands, ALLOWED_UPDATES
+from config.config import user_private_commands, user_group_commands, admin_group_commands, ALLOWED_UPDATES
 
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -24,11 +24,13 @@ from aiogram import Bot, Dispatcher, types
 
 from loguru import logger
 
+from middlewares.stat import MessageCounterMiddleware
+
 setup_logging()
 load_dotenv(".env")
 
 bot = Bot(
-    token=environ.get("BOT_TOKEN"), # write your secret bot token in .env file
+    token="8108454828:AAE7JhTQN5k7UF-KqCLnacO8hUV3hvlG1q4", # write your secret bot token in .env file
     default=DefaultBotProperties(parse_mode=ParseMode.HTML),
 )
 
@@ -47,6 +49,7 @@ async def main():
     await create_db()
 
     dp.update.middleware(DbSessionMiddleware(session_pool=session_maker))
+    dp.message.middleware(MessageCounterMiddleware())
 
     await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_my_commands(
@@ -55,6 +58,10 @@ async def main():
     await bot.set_my_commands(
         commands=admin_group_commands,
         scope=types.BotCommandScopeAllChatAdministrators(),
+    )
+    await bot.set_my_commands(
+        commands=user_group_commands,
+        scope=types.BotCommandScopeAllGroupChats()
     )
 
     logger.success("Bot successfully started and polling...")

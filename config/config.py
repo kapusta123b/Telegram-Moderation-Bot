@@ -45,15 +45,22 @@ user_private_commands = [
 
 admin_group_commands = [
     BotCommand(command="set_admin_chat",description="Set the current chat as the Admin Log Channel",),
+    BotCommand(command="unset_admin_chat",description="Unset the current chat as the Admin Log Channel",),
     BotCommand(command="warn", description="Issue a warning (reply required)"),
     BotCommand(command="mute", description="Restrict user (reply or ID required)"),
     BotCommand(command="unmute", description="Lift restriction (reply required)"),
     BotCommand(command="ban", description="Ban user (reply or ID required)"),
     BotCommand(command="unban", description="Unban user (reply or ID required)"),
-    BotCommand(command="stats", description="View your statistics"),
     BotCommand(command="mute_list", description="View history of mutes"),
     BotCommand(command="ban_list", description="View history of bans"),
     BotCommand(command="warn_list", description="View history of warns"),
+    BotCommand(command="stats", description="View your statistics"),
+    BotCommand(command="report", description="Report user (reply and reason requeired)"),
+]
+
+user_group_commands = [
+    BotCommand(command="stats", description="View your statistics"),
+    BotCommand(command="report", description="Report user (reply and reason requeired)"),
 ]
 
 ALLOWED_UPDATES = [
