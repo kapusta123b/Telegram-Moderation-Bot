@@ -202,8 +202,8 @@ async def restriction_cmd(
         await message.reply(s.ADMIN_NOTICE)
         return
 
-    except Exception:
-        logger.exception(f"Action {action} failed")
+    except Exception as e:
+        logger.exception(f"Action {action} failed, {e}")
         await message.reply(s.SYSTEM_ERROR_MUTE)
         return
 

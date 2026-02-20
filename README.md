@@ -56,7 +56,7 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 ### 👤 Private Chat
 - `/start` — Start the bot and get an overview.
 - `/help` — Detailed guide on how to use the bot.
-- `/stats` — View your personal statistics across groups.
+- `/stats` — View your personal statistics across groups (or **reply** to view any user's stats).
 - `/about` — Information about the bot's features and technical stack.
 - `/how_use_bot` — Step-by-step setup instructions.
 
@@ -77,9 +77,10 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 
 ### 🛡️ Public Group Commands
 - `/report` — Report a message to administrators (Reply required).
-- `/stats` — View your personal statistics in the current chat.
+- `/stats` — View your personal statistics in the current chat (or **reply** to view any user's stats).
 
 > **💡 Time Formats:** `10m`, `1h`, `1d`, `1w`, or `permanent`.
+> **💡 Reply Usage:** Many admin commands support `reply` to target messages instead of user IDs (e.g., `/stats`, `/mute`, `/ban`).
 
 ---
 

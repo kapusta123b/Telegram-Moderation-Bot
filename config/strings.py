@@ -165,7 +165,8 @@ WELCOME_TEXT_GROUP = (
 STATS_TEXT = (
     "📊 <b>User Statistics</b>\n"
     "━━━━━━━━━━━━━━━━━━\n"
-    "👤 <b>User ID:</b> <code>{user_id}</code>\n"
+    "👤 <b>User name</b>: {user_fullname}\n"
+    "🆔 <b>User ID:</b> <code>{user_id}</code>\n"
     "✉️ <b>Messages:</b> <code>{count_messages}</code>\n"
     "🔇 <b>Mutes:</b> <code>{count_mutes}</code>\n"
     "🚫 <b>Bans:</b> <code>{count_bans}</code>\n"
@@ -232,7 +233,7 @@ COMMANDS_TEXT = (
     "• <code>/ban_list</code> - History of bans.\n\n"
     "<b>👤 User Commands:</b>\n"
     "• <code>/report</code> - Report violation (reply).\n"
-    "• <code>/stats</code> - Your personal stats.\n"
+    "• <code>/stats</code> - Your stats or any user's stats (reply).\n"
     "• <code>/help</code> - This menu.\n\n"
     "<b>⏳ Time Formats:</b>\n"
     "<code>10m</code>, <code>1h</code>, <code>1d</code>, <code>1w</code>, <code>permanent</code>\n\n"
