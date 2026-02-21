@@ -15,21 +15,22 @@ def normalize(text: str) -> str:
     return text.translate(str.maketrans("", "", punctuation)).lower()
 
 
-def contains_bad_word(text: str) -> bool:
+def contains_bad_word(text: str) -> bool | list:
     """
     Checks if the provided text contains any prohibited words from the blacklist.
     Supports both exact matches and substring detection.
     """
 
     normalized = normalize(text)
-    words = normalized.split()
 
-    if BAD_WORDS.intersection(words):
-        return True
+    bad_words = []
 
     for bad_word in BAD_WORDS:
         if bad_word in normalized:
-            return True
+            bad_words.append(bad_word)
+    
+    if bad_words:
+        return bad_words
         
     return False
 

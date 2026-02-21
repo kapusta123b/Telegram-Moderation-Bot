@@ -69,6 +69,8 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 - `/unmute [ID]` — Restore message permissions (Reply or User ID).
 - `/ban [duration/ID] [set] [reason]` — Ban a user from the group (Reply or User ID).
 - `/unban [ID]` — Lift a ban (Reply or User ID).
+- `/addfilter [word]` — Add a word to the profanity filter.
+- `/removefilter [word]` — Remove a word from the profanity filter.
 - `/mute_list [current]` — View history of mutes (Paginated).
 - `/ban_list [current]` — View history of bans (Paginated).
 - `/warn_list` — View history of warns (Paginated).

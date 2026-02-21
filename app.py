@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 
 from config.logging_config import setup_logging
 from database.engine import create_db, session_maker
+
+from middlewares.stat import MessageCounterMiddleware
 from middlewares.db import DbSessionMiddleware
 
 from handlers.user_private import user_private_router
@@ -15,6 +17,7 @@ from handlers.lists import lists_router
 from handlers.captcha import captcha_router
 from handlers.system import system_router
 from handlers.user import user_router
+from handlers.filter_admin import filter_router
 
 from config.config import user_private_commands, user_group_commands, admin_group_commands, ALLOWED_UPDATES
 
@@ -24,13 +27,11 @@ from aiogram import Bot, Dispatcher, types
 
 from loguru import logger
 
-from middlewares.stat import MessageCounterMiddleware
-
 setup_logging()
 load_dotenv(".env")
 
 bot = Bot(
-    token="8108454828:AAE7JhTQN5k7UF-KqCLnacO8hUV3hvlG1q4", # write your secret bot token in .env file
+    token=environ.get('BOT_TOKEN'), # write your secret bot token in .env file
     default=DefaultBotProperties(parse_mode=ParseMode.HTML),
 )
 
@@ -41,6 +42,7 @@ dp.include_routers(
     reports_router,
     lists_router,
     user_router,
+    filter_router,
     moderation_router,
     captcha_router,
 )

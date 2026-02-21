@@ -259,7 +259,10 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
                 f"Could not delete message with profanity in chat {message.chat.id}"
             )
 
-    if not contains_bad_word(content):
+    if contains_bad_word(content):
+        words = ' '.join(contains_bad_word(content))
+
+    else:
         return
 
     user = message.from_user
@@ -267,7 +270,6 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
 
     if member.status in ("creator", "administrator"):
         await message.reply(s.ADMIN_NOTICE)
-
         return
 
     service = RestrictionService(bot, session)
@@ -284,8 +286,10 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
                 first_name=user.first_name,
                 current_warns=result["current_warns"],
                 max_warns=MAX_WARNS,
+                words=words
             )
         )
+
     else:
         # auto-muted after MAX_WARNS warns
         await message.reply(
@@ -295,6 +299,7 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
                 max_warns=MAX_WARNS,
                 duration=result["duration"],
                 mute_count=result["mute_count"],
+                words=words
             )
         )
 

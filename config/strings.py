@@ -21,7 +21,8 @@ MODERATION_LOG = (
 ACCESS_RESTRICTED = (
     "🚫 <b>Access Restricted</b>\n"
     "━━━━━━━━━━━━━━━━━━\n"
-    "User <b>{first_name}</b> has reached the limit: <code>{warnings}/{max_warns}</code> warnings.\n\n"
+    "User <b>{first_name}</b> has reached the limit: <code>{warnings}/{max_warns}</code> warnings.\n"
+    "Prohibited words: <code>{words}</code>\n\n"
     "⚖️ <i>Applied {duration} restriction (Mute #{mute_count}).</i>"
 )
 
@@ -79,6 +80,21 @@ USER_IS_NOT_BANNED = "ℹ️ <b>Info:</b> User is not banned or is already a mem
 
 SYSTEM_ERROR_UNBAN = "🚨 <b>System Error:</b> Failed to unban the user."
 
+# filter section
+ADD_FILTER_WORD = "✅ <b>Success:</b> Word <code>{word}</code> added to filters."
+
+ADD_FAIL_FILTER_WORD = "🚨 <b>System Error:</b> Failed to add word to filters."
+
+ADD_WORD_EXISTS = "⚠️ <b>Notice:</b> Word <code>{word}</code> already exists in filters."
+
+REMOVE_FILTER_WORD = "✅ <b>Success:</b> Word <code>{word}</code> removed from filters."
+
+REMOVE_FAIL_FILTER_WORD = "🚨 <b>System Error:</b> Failed to remove word from filters."
+
+REMOVE_WORD_NOT_FOUND = "⚠️ <b>Notice:</b> Word <code>{word}</code> not found in filters."
+
+FILTER_NO_ARGS = "⚠️ <b>Invalid Format:</b> Please specify a word: <code>/addfilter word</code> or <code>/removefilter word</code>."
+
 # report section
 REPORT_SENT = (
     "✅ <b>Report Submitted:</b> Administrators have been notified of this violation."
@@ -128,7 +144,8 @@ ADMIN_NOTICE = "👑 <b>Admin Notice:</b> Please set an example by using profess
 
 SENT_AUTO_WARN = (
     "⚠️ <b>Warning {current_warns}/{max_warns}:</b>\n"
-    "<b>{first_name}</b>, please refrain from using prohibited language in this community."
+    "<b>{first_name}</b>, please refrain from using prohibited language in this community.\n"
+    "Prohibited word: <code>{words}</code>"
 )
 
 ADS_MESSAGE = "🚫 <b>Notice:</b> Advertising and external links are prohibited in this channel."
@@ -229,6 +246,8 @@ COMMANDS_TEXT = (
     "• <code>/unmute</code> - Unmute user (reply/ID).\n"
     "• <code>/ban</code> - Ban user (reply/ID).\n"
     "• <code>/unban</code> - Unban user (reply/ID).\n"
+    "• <code>/addfilter</code> - Add word to profanity filter.\n"
+    "• <code>/removefilter</code> - Remove word from profanity filter.\n"
     "• <code>/mute_list</code> - History of mutes.\n"
     "• <code>/ban_list</code> - History of bans.\n\n"
     "<b>👤 User Commands:</b>\n"
