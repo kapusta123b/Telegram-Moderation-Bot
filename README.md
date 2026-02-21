@@ -192,14 +192,11 @@ This bot uses a keyword-matching system. To ensure the best performance for your
 
 ---
 
-## 🤝 Support & Connect
+## 🤝 Connect
 
 <p align="center">
   <a href="https://t.me/kapusta123b">
     <img src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram" />
-  </a>
-  <a href="https://github.com/kapusta123b/Telegram-Moderation-Bot/stargazers">
-    <img src="https://img.shields.io/badge/Star%20Repo-yellow?style=for-the-badge&logo=github&logoColor=white" alt="Star" />
   </a>
 </p>
 
