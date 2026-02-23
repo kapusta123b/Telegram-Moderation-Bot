@@ -1,0 +1,24 @@
+services:
+
+  bot:
+
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+
+    container_name: tg_moderation_bot
+
+    restart: unless-stopped
+
+    env_file:
+      - ./app/.env
+
+    volumes:
+      - ./app/database:/usr/src/app/database
+      
+    logging:
+      driver: "json-file"
+
+      options:
+        max-size: "10m"
+        max-file: "3"

@@ -40,4 +40,4 @@ def contains_link(text: str) -> bool:
 
     matches = re.findall(pattern, text)
     
-    return matches
+    return bool(matches)

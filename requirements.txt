@@ -1,5 +1,0 @@
-aiogram
-python-dotenv
-sqlalchemy
-aiosqlite
-loguru

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Awaitable, Callable, Dict
 from aiogram import BaseMiddleware
 from aiogram.types import Message
@@ -15,14 +16,18 @@ class MessageCounterMiddleware(BaseMiddleware):
         if isinstance(event, Message) and event.from_user and not event.from_user.is_bot:
             session = data.get("session")
             if session:
-                await session.execute(
-                    update(User)
-                    .where(
-                        User.id == event.from_user.id, 
-                        User.chat_id == event.chat.id
+                user = await session.get(User, (event.from_user.id, event.chat.id))
+                if user:
+                    user.count_messages = (user.count_messages or 0) + 1
+                else:
+                    new_user = User(
+                        id=event.from_user.id, 
+                        chat_id=event.chat.id, 
+                        count_messages=1,
+                        join_date=datetime.now()
                     )
-                    .values(count_messages=User.count_messages + 1)
-                )
+                    session.add(new_user)
+                
                 await session.commit()
 
         return await handler(event, data)

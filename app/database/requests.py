@@ -24,18 +24,29 @@ async def create_user(session: AsyncSession, user_id: int | None, chat_id: int |
 
 async def get_user_stats(session: AsyncSession, user_id: int | None, chat_id: int | None):
     """
-    Returns all user statistics for being in the chat
+    Returns all user statistics for being in the chat.
+    If the user doesn't exist, returns default zero stats.
     """
 
     stats = await session.get(User, (user_id, chat_id))
 
+    if not stats:
+        return {
+            'user_id': user_id,
+            'count_mutes': 0,
+            'count_bans': 0,
+            'count_warns': 0,
+            'join_date': 'N/A',
+            'count_messages': 0
+        }
+
     return {
         'user_id': stats.id,
-        'count_mutes': stats.count_mutes,
-        'count_bans': stats.count_bans,
-        'count_warns': stats.count_warns,
-        'join_date': stats.join_date.strftime('%Y-%m-%d %H:%M'),
-        'count_messages': stats.count_messages
+        'count_mutes': stats.count_mutes or 0,
+        'count_bans': stats.count_bans or 0,
+        'count_warns': stats.count_warns or 0,
+        'join_date': stats.join_date.strftime('%Y-%m-%d %H:%M') if stats.join_date else 'N/A',
+        'count_messages': stats.count_messages or 0
     }
 
 

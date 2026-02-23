@@ -256,8 +256,9 @@ async def cleaner(message: types.Message, bot: Bot, session: AsyncSession):
 
         except Exception:
             logger.debug(
-                f"Could not delete message with profanity in chat {message.chat.id}"
+                f"Could not delete message with link in chat {message.chat.id}"
             )
+        return
 
     if contains_bad_word(content):
         words = ' '.join(contains_bad_word(content))

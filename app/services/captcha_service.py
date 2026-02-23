@@ -16,6 +16,7 @@ class CaptchaService:
         self.bot = bot
         self.session = session
 
+
     async def restrict_new_user(self, chat_id: int, user_id: int):
         """
         Initializes the captcha process by muting the newly joined user.
@@ -24,6 +25,7 @@ class CaptchaService:
         await self.bot.restrict_chat_member(
             chat_id=chat_id, user_id=user_id, permissions=permissions_mute
         )
+
 
     async def verify_user(self, chat_id: int, user: types.User):
         """
@@ -36,6 +38,7 @@ class CaptchaService:
             permissions=permissions_unmute,
         )
         logger.info(f"User {user.id} passed captcha in chat {chat_id}")
+
 
     async def fail_captcha(self, chat: types.Chat, user: types.User):
         """

@@ -51,6 +51,8 @@ admin_group_commands = [
     BotCommand(command="unmute", description="Lift restriction (reply required)"),
     BotCommand(command="ban", description="Ban user (reply or ID required)"),
     BotCommand(command="unban", description="Unban user (reply or ID required)"),
+    BotCommand(command="addfilter", description="Add word to profanity filter"),
+    BotCommand(command="removefilter", description="Remove word from profanity filter"),
     BotCommand(command="mute_list", description="View history of mutes"),
     BotCommand(command="ban_list", description="View history of bans"),
     BotCommand(command="warn_list", description="View history of warns"),
@@ -74,4 +76,4 @@ ALLOWED_UPDATES = [
 # change it if you want more/less warnings before muting the user
 MAX_WARNS = 5
 
-DB_URL = "sqlite+aiosqlite:///db.sqlite3"
+DB_URL = "sqlite+aiosqlite:///database/db.sqlite3"

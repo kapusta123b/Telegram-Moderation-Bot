@@ -11,7 +11,6 @@ from database.requests import create_user, set_log_chat, unset_log_chat
 from filters.group_filters import IsAdmin
 from filters.chat_filters import ChatTypeFilter
 
-
 from loguru import logger
 
 system_router = Router()

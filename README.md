@@ -1,15 +1,10 @@
 # 🛡️ Telegram Profanity Filter & Moderation Bot
 
 <p align="center">
-  <a href="https://git.io/typing-svg">
-    <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=600&size=24&pause=1000&color=F7F7F7&center=true&vCenter=true&width=500&lines=Secure+Your+Community;Automated+Moderation;Profanity+Filtering;Powered+by+Aiogram+3" alt="Typing SVG" />
-  </a>
-</p>
-
-<p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python Version">
+  <img src="https://img.shields.io/badge/Aiogram-3.x-orange?style=for-the-badge&logo=telegram&logoColor=white" alt="Aiogram Version">
+  <img src="https://img.shields.io/badge/Docker-Supported-blue?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Supported">
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
-  <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge" alt="Status">
 </p>
 
 ---
@@ -18,7 +13,7 @@
   <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=header&text=Professional%20Group%20Moderation&fontSize=30" width="100%"/>
 </p>
 
-A professional **Telegram moderation tool** built with **Python** and **Aiogram 3**. This bot provides **automatic profanity filtering**, anti-spam protection, and advanced administrative tools to keep your group chats clean and safe.
+A professional **Telegram moderation tool** built with **Python** and **Aiogram 3**. This bot provides **automatic profanity filtering**, anti-spam protection, and advanced administrative tools to keep your group chats clean and safe. Fully containerized with **Docker Compose**.
 
 ---
 
@@ -29,59 +24,22 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
   <img src="https://img.shields.io/badge/Aiogram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" />
   <img src="https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white" />
   <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
 </p>
 
 ---
 
 ## ✨ Key Features
 
-- **🛡️ Join Captcha**: Automated anti-bot verification for new members with a 5-minute timeout and 1 hour ban for failures.
-- **🚀 Automated Moderation**: Modular routers for real-time scanning of messages and **edits** for prohibited keywords and **external links**.
-- **🚫 Anti-Advertising**: Automatically detects and removes Telegram invitation links (`t.me/`) to prevent spam.
-- **📊 User Statistics**: Public command for users to track their own mutes, bans, and warning history.
-- **📜 Moderation Logs**: Dedicated logging system to track all administrative actions. Automatically **forwards violating messages** to the chosen channel as evidence.
-- **🔧 Modular Architecture**: Decoupled handlers for captcha, lists, moderation, reports, and system tasks for better maintainability.
-- **⚙️ Centralized Services**: Specialized logic layers for restrictions, history management, and automated warnings.
-- **🧹 System Cleanup**: Automatically removes "user joined" and "user left" system messages for a cleaner chat.
-- **💾 Persistent Storage**: SQLite database powered by **SQLAlchemy 2.0** to track violation history and bot configuration.
-- **⚠️ Smart Warning System**: Automatically issues warnings to violators (default: 5/5 warnings lead to auto-mute).
-- **📈 Progressive Mutes**: Intelligent restriction system that scales based on history (1h -> 2.5h -> 4h -> 12h -> 1d -> 1.2x scaling).
-- **🛠️ Admin Toolkit**: Manual `/warn`, `/mute`, and `/ban` commands with custom durations, reasons, and ID support.
-
----
-
-## 📋 Available Commands
-
-### 👤 Private Chat
-- `/start` — Start the bot and get an overview.
-- `/help` — Detailed guide on how to use the bot.
-- `/stats` — View your personal statistics across groups (or **reply** to view any user's stats).
-- `/about` — Information about the bot's features and technical stack.
-- `/how_use_bot` — Step-by-step setup instructions.
-
-### 👥 Group Moderation (Admin Only)
-- `/set_admin_chat` — Set the current chat as the **Admin Log Channel**.
-- `/unset_admin_chat` — Unset the current chat as the **Admin Log Channel**.
-- `/warn` — Issue a formal warning (Reply required).
-- `/unwarn` — Remove one warning from a user (Reply required).
-- `/mute [duration/ID] [set] [reason]` — Mute a user (Reply or User ID).
-- `/unmute [ID]` — Restore message permissions (Reply or User ID).
-- `/ban [duration/ID] [set] [reason]` — Ban a user from the group (Reply or User ID).
-- `/unban [ID]` — Lift a ban (Reply or User ID).
-- `/addfilter [word]` — Add a word to the profanity filter.
-- `/removefilter [word]` — Remove a word from the profanity filter.
-- `/mute_list [current]` — View history of mutes (Paginated).
-- `/ban_list [current]` — View history of bans (Paginated).
-- `/warn_list` — View history of warns (Paginated).
-
-> **💡 Note:** Use the `current` argument with `/mute_list` or `/ban_list` to see only active restrictions.
-
-### 🛡️ Public Group Commands
-- `/report` — Report a message to administrators (Reply required).
-- `/stats` — View your personal statistics in the current chat (or **reply** to view any user's stats).
-
-> **💡 Time Formats:** `10m`, `1h`, `1d`, `1w`, or `permanent`.
-> **💡 Reply Usage:** Many admin commands support `reply` to target messages instead of user IDs (e.g., `/stats`, `/mute`, `/ban`).
+- **🛡️ Join Captcha**: Automated anti-bot verification for new members.
+- **🚀 Automated Moderation**: Real-time scanning for prohibited keywords and external links.
+- **🚫 Anti-Advertising**: Automatically detects and removes Telegram invitation links.
+- **📊 User Statistics**: Track mutes, bans, warning history, and message count.
+- **📜 Moderation Logs**: Dedicated channel logging for all administrative actions.
+- **🔧 Modular Architecture**: Decoupled handlers and services for high maintainability.
+- **⚠️ Smart Warning System**: Configurable warning limits (default: 5) leading to auto-mutes.
+- **📈 Progressive Mutes**: Restriction durations that scale based on violation history.
+- **🛠️ Admin Toolkit**: Comprehensive commands for manual moderation and filter management.
 
 ---
 
@@ -90,13 +48,13 @@ A professional **Telegram moderation tool** built with **Python** and **Aiogram 
 ```mermaid
 graph TD
     subgraph Core[Bot Entry Point]
-        A[app.py]
+        A[app/app.py]
     end
 
     subgraph Config[Central Configuration]
-        CFG[config/config.py]
-        STR[config/strings.py]
-        LOG_CFG[config/logging_config.py]
+        CFG[app/config/config.py]
+        STR[app/config/strings.py]
+        LOG_CFG[app/config/logging_config.py]
     end
 
     subgraph Handlers[Modular Handlers]
@@ -104,7 +62,7 @@ graph TD
         H_CAP[captcha.py]
         H_LST[lists.py]
         H_REP[reports.py]
-        H_SYS[system.py]
+        H_FADMIN[filter_admin.py]
         H_PRIV[user_private.py]
         H_USR[user.py]
     end
@@ -114,12 +72,13 @@ graph TD
         S_HIST[history_service.py]
         S_LOG[log_service.py]
         S_CAP[captcha_service.py]
+        S_FILT[filters_service.py]
     end
 
-    subgraph Data[Persistence & Utils]
-        DB[(database/)]
-        UTL(utils/)
-        FLT(filters/)
+    subgraph Data[Persistence & Middlewares]
+        DB[(app/database/)]
+        MID[app/middlewares/]
+        UTL(app/utils/)
     end
 
     A --> Config
@@ -127,61 +86,98 @@ graph TD
     Handlers --> Services
     Services --> Data
     Handlers --> Data
-    
-    %% Styling
-    style Core fill:#1a1a1a,stroke:#444,stroke-width:2px,color:#fff
-    style Config fill:#3d3d3d,stroke:#666,stroke-width:2px,color:#fff
-    style Handlers fill:#252525,stroke:#444,stroke-width:1px,color:#ccc
-    style Services fill:#2d2d2d,stroke:#555,stroke-width:2px,color:#fff
-    style Data fill:#333,stroke:#ffd700,stroke-width:2px,color:#ffd700
+    A --> MID
 ```
+
+---
 
 ## 📂 File Structure
 
 ```text
 📦 Telegram-Moderation-Bot
- ┣ 📂 config             # Configuration, strings, and logging setup
- ┣ 📂 database           # SQLAlchemy models, async requests, and banwords
- ┣ 📂 filters            # Admin validation and chat-type filters
- ┣ 📂 handlers           # Modular routers (Moderation, Captcha, Lists, etc.)
- ┣ 📂 middlewares        # DB session injection middleware
- ┣ 📂 services           # Core business logic (Restrictions, History, Logs)
- ┣ 📂 utils              # Helper functions (Time parsing, Text normalization)
- ┣ 📜 app.py             # Main entry point & dispatcher configuration
- ┣ 📜 requirements.txt   # Project dependencies
- ┗ 📜 .env               # Environment variables
+ ┣ 📂 app
+ ┃ ┣ 📂 config             # Configuration, strings, and logging setup
+ ┃ ┣ 📂 database           # SQLAlchemy models, SQLite, and banwords
+ ┃ ┣ 📂 filters            # Admin validation and chat-type filters
+ ┃ ┣ 📂 handlers           # Modular routers (Moderation, Captcha, Filters, etc.)
+ ┃ ┣ 📂 middlewares        # DB session and Statistics middlewares
+ ┃ ┣ 📂 services           # Core business logic (Restrictions, History, Filters)
+ ┃ ┣ 📂 utils              # Helper functions (Time parsing, Text normalization)
+ ┃ ┣ 📜 app.py             # Main entry point & dispatcher configuration
+ ┃ ┣ 📜 requirements.txt   # Project dependencies
+ ┃ ┗ 📜 .env               # Environment variables
+ ┣ 📜 docker-compose.yml     # Docker orchestration
+ ┗ 📜 LICENSE                # MIT License
 ```
 
 ---
 
-## 🚀 Quick Start
+## 📋 Available Commands
 
-1. **Add the Bot** to your Telegram group.
-2. **Promote to Admin** with the following permissions:
-   - 🗑️ **Delete Messages**
-   - 🚫 **Ban Users**
-3. **Upgrade to Supergroup**: Ensure your chat is a supergroup to enable restriction features.
+### 👤 Private Chat
+- `/start` — Start the bot and get an overview.
+- `/help` — Detailed guide on how to use commands.
+- `/stats` — View your personal statistics.
+- `/about` — Technical information about the bot.
+- `/how_use_bot` — Step-by-step setup instructions.
+
+### 👥 Group Moderation (Admin Only)
+- `/set_admin_chat` — Configure current chat for admin logs.
+- `/unset_admin_chat` — Disable admin logging for current chat.
+- `/warn` — Issue a warning (Reply required).
+- `/unwarn` — Remove one warning (Reply required).
+- `/mute [duration/ID] [set] [reason]` — Mute a user.
+- `/unmute [ID]` — Lift a mute.
+- `/ban [duration/ID] [set] [reason]` — Ban a user.
+- `/unban [ID]` — Lift a ban.
+- `/addfilter [word]` — Add a word to the profanity filter.
+- `/removefilter [word]` — Remove a word from the filter.
+- `/mute_list [current]` — View mute history.
+- `/ban_list [current]` — View ban history.
+- `/warn_list` — View warning history.
+
+### 🛡️ Public Group Commands
+- `/report` — Report a message to admins (Reply required).
+- `/stats` — View your stats in the current chat.
 
 ---
 
-## ⚙️ Installation
+## ⚙️ Installation & Setup
 
-1. **Clone & Enter**:
+### 🐳 Method 1: Docker (Recommended)
+1. **Clone the repository**:
    ```bash
    git clone https://github.com/kapusta123b/Telegram-Moderation-Bot
    cd Telegram-Moderation-Bot
    ```
-2. **Install**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. **Configure**:
-   Add your token in .env file:
+2. **Configure environment**:
+   Create `app/.env` and add your token:
    ```env
-   SECRET_KEY=your_bot_token
+   BOT_TOKEN=your_bot_token_here
    ```
-4. **Launch**:
+3. **Launch with Docker Compose**:
    ```bash
+   docker-compose up -d --build
+   ```
+
+### 🐍 Method 2: Manual Installation
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/kapusta123b/Telegram-Moderation-Bot
+   cd Telegram-Moderation-Bot
+   ```
+2. **Install dependencies**:
+   ```bash
+   pip install -r app/requirements.txt
+   ```
+3. **Configure environment**:
+   Create `app/.env`:
+   ```env
+   BOT_TOKEN=your_bot_token_here
+   ```
+4. **Run the bot**:
+   ```bash
+   cd app
    python app.py
    ```
 
@@ -189,7 +185,7 @@ graph TD
 
 ## ⚠️ Important Note
 
-This bot uses a keyword-matching system. To ensure the best performance for your community, regularly update the `database/banwords.txt` file with words specific to your moderation needs.
+This bot uses a keyword-matching system. You can manage the filter list directly using `/addfilter` and `/removefilter` commands in your group, or by manually editing `app/database/banwords.txt`.
 
 ---
 

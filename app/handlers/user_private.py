@@ -41,7 +41,7 @@ async def start_cmd(message: types.Message):
     await message.answer(text, reply_markup=keyboard)
 
 
-@user_private_router.message(F.text.lower() == "information about bot...")
+@user_private_router.message(F.text == KB_INFO_BOT)
 @user_private_router.message(Command("about"))
 async def about_cmd(message: types.Message):
     """
@@ -52,7 +52,7 @@ async def about_cmd(message: types.Message):
     await message.reply(text=ABOUT_TEXT.format(max_warns=MAX_WARNS))
 
 
-@user_private_router.message(F.text.lower() == "how use the bot?")
+@user_private_router.message(F.text == KB_HOW_USE_BOT)
 @user_private_router.message(Command("how_use_bot"))
 async def how_to_use_cmd(message: types.Message):
     """
@@ -63,7 +63,7 @@ async def how_to_use_cmd(message: types.Message):
     await message.reply(text=CONFIG_TEXT)
 
 
-@user_private_router.message(F.text.lower() == "view all commands")
+@user_private_router.message(F.text == KB_ALL_COMMANDS)
 @user_private_router.message(Command("help"))
 async def commands_cmd(message: types.Message):
     """
