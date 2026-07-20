@@ -96,7 +96,10 @@ graph TD
 ```text
 📦 Telegram-Moderation-Bot
  ┣ 📂 app
- ┃ ┣ 📂 config             # Configuration, strings, and logging setup
+ ┃ ┣ 📂 config             # App configuration, logging setup
+ ┃ ┣ 📂 locales            # UI text resources, message templates, and localization
+ ┃ ┃ ┣ 📂 group            # Group chat messages (bans, mutes, warns, captcha)
+ ┃ ┃ ┗ 📂 private          # Private chat messages (main menu, help, user stats)
  ┃ ┣ 📂 database           # SQLAlchemy models, SQLite, and banwords
  ┃ ┣ 📂 filters            # Admin validation and chat-type filters
  ┃ ┣ 📂 handlers           # Modular routers (Moderation, Captcha, Filters, etc.)

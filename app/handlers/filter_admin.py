@@ -2,11 +2,7 @@ from aiogram import Router, types
 from aiogram.filters import Command, CommandObject
 
 from config.config import BAD_WORDS_FILE
-from config.strings import (
-    ADD_FAIL_FILTER_WORD, ADD_FILTER_WORD, ADD_WORD_EXISTS,
-    REMOVE_FAIL_FILTER_WORD, REMOVE_FILTER_WORD, REMOVE_WORD_NOT_FOUND,
-    FILTER_NO_ARGS
-)
+import locales.group as s
 from filters.chat_filters import ChatTypeFilter
 from filters.group_filters import IsAdmin
 from services.filters_service import add_filter_word, remove_filter_word, _word_exists
@@ -23,7 +19,7 @@ async def profanity_filter(message: types.Message, command: CommandObject):
     """
 
     if not command.args:
-        await message.reply(FILTER_NO_ARGS)
+        await message.reply(s.FILTER_NO_ARGS)
         return
     
     action = command.command
@@ -35,16 +31,16 @@ async def profanity_filter(message: types.Message, command: CommandObject):
                 lines = f.readlines()
             
             if _word_exists(word, lines):
-                await message.reply(ADD_WORD_EXISTS.format(word=word))
+                await message.reply(s.ADD_WORD_EXISTS.format(word=word))
                 return
         except Exception:
-            await message.reply(ADD_FAIL_FILTER_WORD)
+            await message.reply(s.ADD_FAIL_FILTER_WORD)
             return
 
         if await add_filter_word(word):
-            await message.reply(ADD_FILTER_WORD.format(word=word))
+            await message.reply(s.ADD_FILTER_WORD.format(word=word))
         else:
-            await message.reply(ADD_FAIL_FILTER_WORD)
+            await message.reply(s.ADD_FAIL_FILTER_WORD)
 
     else:
         try:
@@ -52,13 +48,13 @@ async def profanity_filter(message: types.Message, command: CommandObject):
                 lines = f.readlines()
             
             if not _word_exists(word, lines):
-                await message.reply(REMOVE_WORD_NOT_FOUND.format(word=word))
+                await message.reply(s.REMOVE_WORD_NOT_FOUND.format(word=word))
                 return
         except Exception:
-            await message.reply(REMOVE_FAIL_FILTER_WORD)
+            await message.reply(s.REMOVE_FAIL_FILTER_WORD)
             return
 
         if await remove_filter_word(word):
-            await message.reply(REMOVE_FILTER_WORD.format(word=word))
+            await message.reply(s.REMOVE_FILTER_WORD.format(word=word))
         else:
-            await message.reply(REMOVE_FAIL_FILTER_WORD)
+            await message.reply(s.REMOVE_FAIL_FILTER_WORD)

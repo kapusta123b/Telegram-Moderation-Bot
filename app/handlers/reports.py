@@ -4,7 +4,7 @@ from aiogram.filters.command import CommandObject
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import config.strings as s
+import locales.group as s
 
 from services.log_service import send_log
 

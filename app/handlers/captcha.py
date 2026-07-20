@@ -6,7 +6,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import config.strings as s
+import locales.group as s
 
 from services.captcha_service import CaptchaService
 

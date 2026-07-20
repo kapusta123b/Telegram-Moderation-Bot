@@ -8,12 +8,7 @@ from aiogram.filters.callback_data import CallbackData
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config.strings import (
-    BAN_HISTORY_HEADER,
-    MUTE_HISTORY_HEADER,
-    LIST_RECORD,
-    WARN_HISTORY_HEADER,
-)
+import locales.group as s
 
 from database.models import BanHistory, MuteHistory, WarnHistory
 from database.requests import get_history_list
@@ -80,7 +75,7 @@ class HistoryService:
             name_text = escape(record.name) if record.name else "Unknown"
             duration = record.duration if model != WarnHistory and record.duration else None
 
-            text += LIST_RECORD.format(
+            text += s.LIST_RECORD.format(
                 name=name_text,
                 user_id=record.user_id,
                 date=date,
@@ -105,7 +100,7 @@ class HistoryService:
             fetch_func=get_history_list,
             model=BanHistory,
             status_arg="is_banned",
-            header=BAN_HISTORY_HEADER,
+            header=s.BAN_HISTORY_HEADER,
             exception_class=NoRecordsBan,
             page=page,
             current=current,
@@ -121,7 +116,7 @@ class HistoryService:
             fetch_func=get_history_list,
             model=MuteHistory,
             status_arg="is_muted",
-            header=MUTE_HISTORY_HEADER,
+            header=s.MUTE_HISTORY_HEADER,
             exception_class=NoRecordsMute,
             page=page,
             current=current,
@@ -137,7 +132,7 @@ class HistoryService:
             fetch_func=get_history_list,
             model=WarnHistory,
             status_arg=None,
-            header=WARN_HISTORY_HEADER,
+            header=s.WARN_HISTORY_HEADER,
             exception_class=NoRecordsWarn,
             page=page,
             current=current,

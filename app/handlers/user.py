@@ -3,7 +3,8 @@ from aiogram.filters import Command
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config.strings import STATS_TEXT
+import locales.group as s
+
 from database.requests import get_user_stats
 from filters.chat_filters import ChatTypeFilter
 
@@ -28,7 +29,7 @@ async def stats_cmd(message: types.Message, session: AsyncSession):
     )
 
     await message.reply(
-        STATS_TEXT.format(
+        sSTATS_TEXT.format(
             user_id=stats["user_id"],
             user_fullname=user.full_name,
             count_messages=stats["count_messages"],

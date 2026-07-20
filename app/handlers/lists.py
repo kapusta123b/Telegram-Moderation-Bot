@@ -5,7 +5,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import config.strings as s
+import locales.group as s
 from filters.group_filters import IsAdmin
 from filters.chat_filters import ChatTypeFilter
 from services.history_service import (

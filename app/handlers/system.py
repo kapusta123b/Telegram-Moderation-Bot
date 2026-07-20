@@ -3,7 +3,7 @@ from aiogram.filters.command import CommandObject, Command
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import config.strings as s
+import locales.group as s
 from config.config import MAX_WARNS
 
 from database.requests import create_user, set_log_chat, unset_log_chat

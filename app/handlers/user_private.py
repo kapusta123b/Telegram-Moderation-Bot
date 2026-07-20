@@ -4,15 +4,8 @@ from aiogram.filters import CommandStart, Command
 from filters.chat_filters import ChatTypeFilter
 
 from config.config import MAX_WARNS
-from config.strings import (
-    ABOUT_TEXT,
-    COMMANDS_TEXT,
-    CONFIG_TEXT,
-    KB_ALL_COMMANDS,
-    KB_HOW_USE_BOT,
-    KB_INFO_BOT,
-    WELCOME_TEXT_PRIVATE,
-)
+
+import locales.private as s
 
 from loguru import logger
 
@@ -28,11 +21,11 @@ async def start_cmd(message: types.Message):
 
     logger.info(f"User {message.from_user.id} started bot in private")
 
-    text = WELCOME_TEXT_PRIVATE.format(full_name=message.from_user.full_name)
+    text = s.WELCOME_TEXT_PRIVATE.format(full_name=message.from_user.full_name)
     kb = [
-        [types.KeyboardButton(text=KB_INFO_BOT)],
-        [types.KeyboardButton(text=KB_HOW_USE_BOT)],
-        [types.KeyboardButton(text=KB_ALL_COMMANDS)],
+        [types.KeyboardButton(text=s.KB_INFO_BOT)],
+        [types.KeyboardButton(text=s.KB_HOW_USE_BOT)],
+        [types.KeyboardButton(text=s.KB_ALL_COMMANDS)],
     ]
 
     keyboard = types.ReplyKeyboardMarkup(
@@ -41,7 +34,7 @@ async def start_cmd(message: types.Message):
     await message.answer(text, reply_markup=keyboard)
 
 
-@user_private_router.message(F.text == KB_INFO_BOT)
+@user_private_router.message(F.text == s.KB_INFO_BOT)
 @user_private_router.message(Command("about"))
 async def about_cmd(message: types.Message):
     """
@@ -49,10 +42,10 @@ async def about_cmd(message: types.Message):
     Displays technical details and bot capabilities.
     """
     
-    await message.reply(text=ABOUT_TEXT.format(max_warns=MAX_WARNS))
+    await message.reply(text=s.ABOUT_TEXT.format(max_warns=MAX_WARNS))
 
 
-@user_private_router.message(F.text == KB_HOW_USE_BOT)
+@user_private_router.message(F.text == s.KB_HOW_USE_BOT)
 @user_private_router.message(Command("how_use_bot"))
 async def how_to_use_cmd(message: types.Message):
     """
@@ -60,10 +53,10 @@ async def how_to_use_cmd(message: types.Message):
     Provides step-by-step configuration guide.
     """
     
-    await message.reply(text=CONFIG_TEXT)
+    await message.reply(text=s.CONFIG_TEXT)
 
 
-@user_private_router.message(F.text == KB_ALL_COMMANDS)
+@user_private_router.message(F.text == s.KB_ALL_COMMANDS)
 @user_private_router.message(Command("help"))
 async def commands_cmd(message: types.Message):
     """
@@ -71,4 +64,4 @@ async def commands_cmd(message: types.Message):
     Lists all available commands and their usage.
     """
     
-    await message.reply(text=COMMANDS_TEXT)
+    await message.reply(text=s.COMMANDS_TEXT)

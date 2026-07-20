@@ -4,11 +4,7 @@ from aiogram import types, Bot
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.requests import get_log_chat
 
-from config.strings import (
-    DURATION_TEXT,
-    REASON_LOG_TEXT,
-    MODERATION_LOG
-)
+import locales.group as s
 
 from loguru import logger
 
@@ -53,12 +49,12 @@ async def send_log(
         chat_id = chat.id
 
     duration_text = (
-        DURATION_TEXT.format(duration=escape(duration)) if duration else ""
+        s.DURATION_TEXT.format(duration=escape(duration)) if duration else ""
     )
 
-    reason_text = REASON_LOG_TEXT.format(reason=escape(reason)) if reason else ""
+    reason_text = s.REASON_LOG_TEXT.format(reason=escape(reason)) if reason else ""
 
-    log_text = MODERATION_LOG.format(
+    log_text = s.MODERATION_LOG.format(
         first_name=escape(user.first_name),
         user_id=user.id,
         action=escape(action),

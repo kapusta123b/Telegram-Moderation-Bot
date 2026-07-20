@@ -5,7 +5,7 @@ from aiogram.filters.command import CommandObject
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.config import MAX_WARNS
-import config.strings as s
+import locales.group as s
 
 from filters.group_filters import IsAdmin
 from filters.chat_filters import ChatTypeFilter
