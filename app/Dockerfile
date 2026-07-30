@@ -1,18 +1,26 @@
-FROM python:3.13-alpine
+# syntax=docker/dockerfile:1
+
+
+FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
-COPY . .
+RUN useradd \
+    --system \
+    --uid 1234 \
+    --create-home \
+    --shell /bin/bash \
+    nonroot
 
-RUN adduser --disabled-password --gecos "" appuser && \
-    chown -R appuser /usr/src/app
+COPY --chown=nonroot:nonroot . .
     
-USER appuser
+USER nonroot
 
 CMD ["python", "app.py"]
