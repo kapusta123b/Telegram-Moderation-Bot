@@ -76,4 +76,10 @@ ALLOWED_UPDATES = [
 # change it if you want more/less warnings before muting the user
 MAX_WARNS = 5
 
-DB_URL = "sqlite+aiosqlite:///database/db.sqlite3"
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+DB_PATH = BASE_DIR / "database" / "db.sqlite3"
+
+DB_URL = f"sqlite+aiosqlite:///{DB_PATH}"

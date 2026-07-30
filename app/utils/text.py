@@ -4,7 +4,12 @@ import re
 
 from config.config import BAD_WORDS_FILE
 
-with open(BAD_WORDS_FILE, encoding="utf-8") as f:
+from pathlib import Path
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+with open(BASE_DIR / BAD_WORDS_FILE, encoding="utf-8") as f:
     BAD_WORDS = {line.strip().lower() for line in f if line.strip()}
 
 def normalize(text: str) -> str:
