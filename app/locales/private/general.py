@@ -9,8 +9,24 @@ WELCOME_TEXT_PRIVATE = (
 KB_INFO_BOT = "🛡️ About Bot"
 KB_HOW_USE_BOT = "⚙️ Setup Guide"
 KB_ALL_COMMANDS = "📜 Commands List"
-
+    
 # about
+ABOUT_TEXT = (
+    "<b>🛡️ Professional Moderation Service</b>\n"
+    "━━━━━━━━━━━━━━━━━━\n"
+    "I am designed to act as a silent guardian for your chat. By utilizing a modular "
+    "architecture and <b>persistent storage</b>, I manage violations in real-time.\n\n"
+    "🚀 <b>Core Capabilities:</b>\n"
+    "• <b>Join Captcha</b>: Anti-bot verification for new members.\n"
+    "• <b>Moderation Logs</b>: Track actions in a dedicated channel.\n"
+    "• <b>Centralized Logic</b>: Robust sanctions and history tracking.\n"
+    "• <b>Real-time Scanning</b>: Automated filtering of messages and edits.\n"
+    "• <b>Anti-Advertising</b>: Automatic removal of external links.\n"
+    "• <b>Progressive Bans</b>: Intelligent scaling of restrictions.\n\n"
+    "<i>I ensure administrators retain full control while I handle the routine tasks.</i>"
+)
+
+# config
 CONFIG_TEXT = (
     "<b>⚙️ Configuration Instructions</b>\n"
     "━━━━━━━━━━━━━━━━━━\n"
@@ -21,6 +37,8 @@ CONFIG_TEXT = (
     "4. <b>Supergroup</b>: Ensure your chat is a supergroup for full features.\n\n"
     "💡 <i>Commands can be used by replying to messages or providing a User ID.</i>"
 )
+
+
 
 # commands
 COMMANDS_TEXT = (
