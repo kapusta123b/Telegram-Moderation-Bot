@@ -49,7 +49,7 @@ Telegram bot for group moderation built with Python and Aiogram 3.
  ┃ ┣ 📂 utils              # Helper functions (Time parsing, Text normalization)
  ┃ ┣ 📜 app.py             # Main entry point & dispatcher configuration
  ┃ ┣ 📜 requirements.txt   # Project dependencies
- ┃ ┗ 📜 .env               # Environment variables
+ ┣ 📜 .env                   # Environment variables
  ┣ 📜 docker-compose.yml     # Docker orchestration
  ┗ 📜 LICENSE                # MIT License
 ```
@@ -119,7 +119,7 @@ git clone https://github.com/kapusta123b/Telegram-Moderation-Bot
 cd Telegram-Moderation-Bot
 ```
 
-Create `app/.env`:
+Edit `.env`:
 
 ```env
 BOT_TOKEN=your_bot_token
@@ -128,13 +128,13 @@ BOT_TOKEN=your_bot_token
 Run container:
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 Stop container:
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ---
@@ -174,7 +174,7 @@ Install dependencies:
 pip install -r app/requirements.txt
 ```
 
-Create `app/.env`:
+Edit `.env`:
 
 ```env
 BOT_TOKEN=your_bot_token
